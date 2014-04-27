@@ -1,5 +1,6 @@
 // Main function of the web app.
 function doGet() {  
+  var app = UiApp.createApplication();
   var attributes = {
     border : 'thin black solid',
     minHeight : '100px',
@@ -7,11 +8,18 @@ function doGet() {
     margin : '3px',
     padding : '3px',
   }
-  var app = UiApp.createApplication();  
+
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
   waxon.addArea('feedbackarea', attributes);
   waxon.addArea('debug', attributes);
+
+  delete(attributes.border);
+  waxon.addArea('infobox', attributes);
+  waxon.addToArea('infobox', app.createLabel('Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.'));
+  waxon.addToArea('infobox', app.createLabel('Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.'));
+  waxon.addToArea('infobox', app.createLabel('I denna tidiga proof-of-concept finns bara en typ av frågor (bråkräkning med fyra räknesätt) och ett läge för att träna (oändligt många frågor). Om konceptet fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).'));
+  waxon.addToArea('infobox', app.createLabel('Projektet är open source och går att hitta på https://github.com/Itangalo/waxon'));
 
   buildQuestion();
   return app;
@@ -81,4 +89,3 @@ function debug(variable, reset) {
     waxon.addToArea('debug', app.createLabel(variable));
   }
 }
-
