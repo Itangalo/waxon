@@ -12,13 +12,15 @@ function doGet() {
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
   waxon.addArea('feedbackarea', attributes);
+  attributes.background = 'lightgrey';
   waxon.addArea('debug', attributes);
 
   delete(attributes.border);
+  delete(attributes.background);
   waxon.addArea('infobox', attributes);
   waxon.addToArea('infobox', app.createLabel('Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.'));
   waxon.addToArea('infobox', app.createLabel('Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.'));
-  waxon.addToArea('infobox', app.createLabel('I denna tidiga proof-of-concept finns bara en typ av frågor (bråkräkning med fyra räknesätt) och ett läge för att träna (oändligt många frågor). Om konceptet fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).'));
+  waxon.addToArea('infobox', app.createLabel('I denna tidiga proof-of-concept finns bara två typer av frågor (enkel addition respektive bråkräkning med fyra räknesätt) och ett läge för att träna (oändligt många frågor). Om konceptet fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).'));
   waxon.addToArea('infobox', app.createLabel('Projektet är open source och går att hitta på https://github.com/Itangalo/waxon'));
 
   buildQuestion();
@@ -30,7 +32,10 @@ function buildQuestion(questionId) {
   waxon.clearArea('questionarea');
   waxon.clearArea('answerarea');
 
-  var question = waxon.questions.fractionsMixed;
+  var availableQuestions = Object.keys(waxon.questions);
+  var questionId = availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)];
+  debug('Now displaying: ' + questionId);
+  var question = waxon.questions[questionId];
   var parameters = question.generateParameters();
   var handler = app.createServerHandler('checkAnswer');
 
@@ -69,6 +74,9 @@ function checkAnswer(eventInfo) {
   if (response.result > 0) {
     debug('Rätt');
     buildQuestion();
+  }
+  else {
+    debug('Fel, sorry.');
   }
   
   return app;
