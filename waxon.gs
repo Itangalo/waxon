@@ -78,8 +78,8 @@ function waxonQuestion(id) {
   
   this.generateParameters = function() {
     return {
-      a : Math.round(Math.random() * 10),
-      b : Math.round(Math.random() * 10),
+      a : waxonUtils.randomInt(-10, 10),
+      b : waxonUtils.randomInt(-10, 10, [0]),
     };
   };
 
@@ -97,7 +97,7 @@ function waxonQuestion(id) {
   
   this.answerElements = function(parameters) {
     var app = UiApp.getActiveApplication();
-    var label = app.createLabel('Answer:');
+    var label = app.createLabel('Svar:');
     var answer = app.createTextBox().setWidth('200px').setFocus(true);
     return {
       label : label,
@@ -105,7 +105,7 @@ function waxonQuestion(id) {
     };
   };
   
-  this.evaluateAnswer = function(parameters, answer) {
+  this.evaluateAnswer = function(parameters, input) {
     return {
       result : 0,
       message : 'There is no method for evaluating your answer. Sorry.',
