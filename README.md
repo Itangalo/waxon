@@ -13,4 +13,4 @@ If you want to write your own question plugins, there's a well-documented exampl
 You can try out an early version of the script here:
 https://script.google.com/macros/s/AKfycbwcV90OzdvmeIW5nJD4LESZpAEcwivlwNsCpEyzs2e4we-O5uWu/exec
 
-For the wax-on-wax-off concept, see https://answers.yahoo.com/question/index?qid=20070622172654AAIV3Vj
+For more information about the waxon concept, see https://www.youtube.com/watch?v=3PycZtfns_U
