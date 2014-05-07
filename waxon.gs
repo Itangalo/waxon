@@ -1,9 +1,74 @@
 /**
- * The main module for the waxon framework, taking care of UI calls and some more.
+ * @file: Main module and functions for the Waxon framework.
+ */
+
+function doGet() {  
+  var app = UiApp.createApplication();
+
+  var frame = waxon.resolveFrame();
+  waxon.frames[frame].drawAreas();
+  
+  var questionInfo = waxon.getQuestionInfo();
+  waxon.buildQuestion(questionInfo);
+  return app;
+}
+
+/**
+ * The main module for the Waxon framework, taking care of UI calls and some more.
  */
 var waxon = (function () {
+  // Private variables
+  var currentFrame = null;
+  var questionStack = [];
+  // Public variables
+  var frames = {};
   var questions = {};
+  var questionIds = [];
+
+/**
+ * Meta-functions, for managing property storage.
+ */
   
+  // Fetches (and if necessary builds) the hopefully unique ID for
+  // this instance of Waxon. Uses a time-based token.
+  function getScriptId() {
+    if (typeof PropertiesService.getScriptProperties().getProperty('waxon id') == 'string') {
+      return PropertiesService.getScriptProperties().getProperty('waxon id');
+    }
+    else {
+      var d = new Date();
+      return PropertiesService.getScriptProperties().setProperty('waxon id', 'waxon' + d.valueOf()).getProperty('waxon id');
+    }
+  };
+  
+  // Fetches (and if necessary builds) the user ID for this Waxon script.
+  // If the user is logged in, the e-mail will be used. Otherwise a time-based
+  // token will be built.
+  function getUserId() {
+    if (Session.getActiveUser().getEmail() == '') {
+      var waxonUserIds = JSON.parse(PropertiesService.getUserProperties().getProperty('waxon user id'));
+      if (waxonUserIds == null) {
+        waxonUserIds = {};
+      }
+      if (waxonUserIds[getScriptId()] == undefined) {
+        var d = new Date();
+        waxonUserIds[getScriptId()] = 'id-' + d.valueOf();
+        PropertiesService.getUserProperties().setProperty('waxon user id', JSON.stringify(waxonUserIds));
+        return 'id-' + d.valueOf();
+      }
+      else {
+        return waxonUserIds[getScriptId()];
+      }
+    }
+    else {
+      return Session.getActiveUser().getEmail();
+    }
+  }
+  
+/**
+ * Functions for managing areas/UI.
+ */
+  // Adds a new area, with specified CSS-attributes.
   function addArea(name, attributes) {
     var app = UiApp.getActiveApplication();
     app.add(
@@ -14,13 +79,19 @@ var waxon = (function () {
     return app;
   }
   
+  // Adds a UI element to the specified area. If just a text string is provided,
+  // it will be added as a plain label element.
   function addToArea(area, element) {
     var app = UiApp.getActiveApplication();
     var panel = app.getElementById(area);
+    if (typeof element == 'string') {
+      element = app.createLabel(element);
+    }
     panel.add(element);
     return app;
   }
   
+  // Removes all elements from the specified area.
   function clearArea(area) {
     var app = UiApp.getActiveApplication();
     var panel = app.getElementById(area);
@@ -28,54 +99,202 @@ var waxon = (function () {
     return app;
   }
   
-  function addQuestion(question) {
+/**
+ * Managing question and frame objects
+ */
+
+  function addFrame(frame) {
+    this.frames[frame.id] = frame;
+  }
+  
+  // TODO.
+  function resolveFrame() {
+    return 'devFrame';
+  }
+
+  function addQuestion(question, isNonQuestion) {
     this.questions[question.id] = question;
+    if (isNonQuestion != true) {
+      questionIds.push(question.id);
+    }
   }
   
-  function writeParameters(parameters, handler) {
-    var app = UiApp.getActiveApplication();
-    var hiddenParameters = app.createHidden('parameters', JSON.stringify(parameters || {})).setId('parameters');
-    handler.addCallbackElement(hiddenParameters);
-    app.add(hiddenParameters);
-    return app;
+/**
+ * Managing the question stack and its content.
+ */
+
+  // Fetches (and if necessary builds) the question stack for the acting
+  // user. Also populates the first entry in the stack with parameters, and
+  // stores the stack to the database for persistence between page loads.
+  // (Argument 'index' can be used to pre-build another entry.)
+  function getQuestionStack(index) {
+    index = index || 0;
+    // If there is a pre-built stack and processed stack, use it.
+    if (questionStack.length != 0 && questionStack[index].processed == true) {
+      return questionStack;
+    }
+    
+    var stack, entry;
+    var db = ScriptDb.getMyDb();
+    var result = db.query({userId : getUserId()});
+    if (result.hasNext() == false) {
+      entry = {userId : getUserId()};
+    }
+    else {
+      entry = result.next();
+    }
+
+    if (typeof entry.stack == 'object' && entry.stack.length > 0) {
+      stack = entry.stack;
+    }
+    else {
+      stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
+    }
+
+    stack[index] = processQuestion(stack[index]);
+    entry.stack = stack;
+    db.save(entry);
+    questionStack = stack;
+    return stack;
   }
   
-  function readParameters(eventInfo) {
-    return JSON.parse(eventInfo.parameter.parameters) || {};
+  // Saves a new question stack, for persistance between page loads.
+  function setQuestionStack(stack) {
+    var stack, entry;
+    var db = ScriptDb.getMyDb();
+    var result = db.query({userId : getUserId()});
+    if (result.hasNext() == false) {
+      entry = {userId : getUserId()};
+    }
+    else {
+      entry = result.next();
+    }
+    entry.stack = stack;
+    db.save(entry);
+    questionStack = stack;
   }
   
+  // Populates a question (in the question stack) with data that is needed
+  // when building and displaying the actual question.
+  function processQuestion(questionInfo) {
+    // Check if the question is just specified by a question ID.
+    if (typeof questionInfo == 'string') {
+      questionInfo = {
+        id : questionInfo,
+      }
+    }
+    
+    // If the question is already processed, we shortcut the process.
+    if (questionInfo.processed == true) {
+      return questionInfo;
+    }
+
+    // Set question parameters, if needed.    
+    if (questionInfo.parameters == undefined) {
+      questionInfo.parameters = waxon.questions[questionInfo.id].generateParameters(questionInfo.options);
+    }
+
+    questionInfo.processed = true;
+    return questionInfo;
+  }
+  
+  // Fetches (and if necessary builds) question info for a specified
+  // index in the question stack. Index defaults to the first question.
+  function getQuestionInfo(index) {
+    index = index || 0;
+    return getQuestionStack(index)[index];
+  }
+  
+  // Removes the topmost question in the stack, or the specified question.
+  function removeQuestion(index) {
+    index = index || 0;
+    var stack = getQuestionStack();
+    stack.splice(index, 1);
+    setQuestionStack(stack);
+  }
+
+  // Fetches the parameters from a question in the question stack, assuming the
+  // parameters are already built. Uses first question if none is specified.
+  function readParameters(index) {
+    index = index || 0;
+    var stack = this.getQuestionStack();
+    return stack[index].parameters;
+  }
+
+  // Assures that a question response has the right format.
   function cleanupResponse(response) {
     var cleanResponse = {};
     cleanResponse.message = response.message || '';
-    if (typeof response.result == 'number') {
-      cleanResponse.result = parseInt(response.result);
+    if (typeof response.code == 'number') {
+      cleanResponse.code = parseInt(response.code);
     }
     else {
-      cleanResponse.result = parseInt(response);
+      cleanResponse.code = parseInt(response);
     }
     return cleanResponse;
   }
   
+  // Displays a question
+  function buildQuestion(questionInfo) {
+    var app = UiApp.getActiveApplication();
+    waxon.clearArea('questionarea');
+    waxon.clearArea('answerarea');
+    
+    var question = waxon.questions[questionInfo.id];
+    var parameters = questionInfo.parameters;
+    var handler = app.createServerHandler('checkAnswer');
+    
+    var questionElements = question.questionElements(parameters);
+    for (var i in questionElements) {
+      waxon.addToArea('questionarea', questionElements[i]);
+    }
+    
+    var answerElements = question.answerElements(parameters);
+    for (var i in answerElements) {
+      try {
+        answerElements[i].setId(i);
+        answerElements[i].setName(i);
+      }
+      catch(e) {}
+      waxon.addToArea('answerarea', answerElements[i]);
+      handler.addCallbackElement(answerElements[i]);
+    }
+    waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler));
+    
+    return app;
+  }
+  
+  // The publically accessible properties and methods
   return {
     // Variables
     questions : questions,
+    questionIds : questionIds,
+    frames : frames,
     // Methods
     addArea : addArea,
     addToArea : addToArea,
     clearArea : clearArea,
     addQuestion : addQuestion,
-    writeParameters : writeParameters,
+    addFrame : addFrame,
     readParameters : readParameters,
     cleanupResponse : cleanupResponse,
+    getScriptId : getScriptId,
+    getUserId : getUserId,
+    getQuestionStack : getQuestionStack,
+    getQuestionInfo : getQuestionInfo,
+    removeQuestion : removeQuestion,
+    resolveFrame : resolveFrame,
+    buildQuestion : buildQuestion,
   };
 }) ();
 
 /**
  * Class-like function for building waxon questions.
  */
-function waxonQuestion(id) {
+function waxonQuestion(id, isNonQuestion) {
   this.id = id;
-  
+  waxon.addQuestion(this, isNonQuestion);
+
   this.generateParameters = function() {
     return {
       a : waxonUtils.randomInt(-10, 10),
@@ -107,8 +326,102 @@ function waxonQuestion(id) {
   
   this.evaluateAnswer = function(parameters, input) {
     return {
-      result : 0,
+      code : 0,
       message : 'There is no method for evaluating your answer. Sorry.',
     }
   };
 };
+
+function waxonFrame(id) {
+  this.id = id;
+  waxon.addFrame(this);
+  
+  this.buildQuestionStack = function() {
+    // Just pick three random questions.
+    var stack = [];
+    var availableQuestions = waxon.questionIds;
+    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
+    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
+    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
+    return stack;
+  };
+  
+  this.drawAreas = function() {
+    var app = UiApp.getActiveApplication();
+    var attributes = {
+      border : 'thin black solid',
+      minHeight : '100px',
+      maxHeight : '200px',
+      margin : '3px',
+      padding : '3px',
+    }
+    
+    waxon.addArea('questionarea', attributes);
+    waxon.addArea('answerarea', attributes);
+    waxon.addArea('feedbackarea', attributes);
+    attributes.visible = 'false';
+    waxon.addArea('debug', attributes);
+    
+    return app;
+  }
+  
+  this.processResponse = function(responseCode, responseMessage) {
+    var app = UiApp.getActiveApplication();
+    
+    // Set default response messages for the different response codes.
+    if (responseCode > 0) {
+      responseMessage = responseMessage | 'Rätt!';
+      // If correctly answered, remove the current question from the stack.
+      waxon.questionStack.pop();
+    }
+    else if (responseCode < 0) {
+      responseMessage = responseMessage | 'Fel. Försök igen!';
+    }
+    else if (responseCode = 0) {
+      responseMessage = responseMessage | 'Nära. Kolla ditt svar och försök igen.';
+    }
+    // Display the response message to the user.
+    waxon.addToFrame('feedback', app.createLabel(responseMessage));
+    return app;
+  }
+}
+
+function checkAnswer(eventInfo) {
+  var questionInfo = waxon.getQuestionInfo();
+  var parameters = questionInfo.parameters;
+  var questionId = questionInfo.id;
+  
+  var app = UiApp.getActiveApplication();  
+  var response = waxon.cleanupResponse(waxon.questions[questionId].evaluateAnswer(parameters, eventInfo.parameter));
+  
+  waxon.frames[waxon.resolveFrame()].processResponse(response.code, response.message);
+  questionInfo = waxon.getQuestionInfo();
+  waxon.buildQuestion(questionInfo);
+  return app;
+}
+
+function debug(variable, reset) {
+  var app = UiApp.getActiveApplication();
+  if (reset == true) {
+    waxon.clearArea('debug');
+  }
+  
+  if (typeof variable == 'object') {
+    for (var i in variable) {
+      waxon.addToArea('debug', app.createLabel(variable[i]));
+    }
+  }
+  else {
+    waxon.addToArea('debug', app.createLabel(variable));
+  }
+}
+
+function reset() {
+  PropertiesService.getUserProperties().deleteAllProperties();
+  PropertiesService.getScriptProperties().deleteAllProperties();
+  var db = ScriptDb.getMyDb();
+  var result = db.query({});
+  while (result.hasNext()) {
+    db.remove(result.next());
+  }
+}
