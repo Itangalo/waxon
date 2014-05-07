@@ -56,13 +56,13 @@ simpleAddition.evaluateAnswer = function(parameters, input) {
   // This is done on the following form:
   if (enteredSum > correctSum) {
     return {
-      result : -1,
+      code : -1,
       message : 'Too much!',
     }
   }
   else {
     return {
-      result : -1,
+      code : -1,
       message : 'Too little!',
     }
   }
@@ -73,8 +73,3 @@ simpleAddition.evaluateAnswer = function(parameters, input) {
   // question is asked. (On tests, for example, you probably won't get a
   // second chance. On practice, you probably will.)
 };
-
-// Finally, when you've done all overrides to your question, you should
-// add it to the waxon object to tell the framework that a new question
-// exists and can be used.
-waxon.addQuestion(simpleAddition);
