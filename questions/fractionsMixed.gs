@@ -32,32 +32,33 @@ fractionsMixed.questionElements = function(parameters) {
 };
   
 fractionsMixed.evaluateAnswer = function(parameters, input) {
-  var denominator, nominator, gcd, response;
-  var a = parameters.a;
-  var b = parameters.b;
-  var c = parameters.c;
-  var d = parameters.d;
+  var denominator, nominator, gcd, response, a, b, c, d, operation;
+  a = parameters.a;
+  b = parameters.b;
+  c = parameters.c;
+  d = parameters.d;
+  operation = parameters.operation;
 
   // If we use subtraction, change variable and change operator.
-  if (parameters.operation == '-') {
+  if (operation == '-') {
     c = -c;
-    parameters.operation = '+';
+    operation = '+';
   }
   // If we use division, swap variables and change operator.
-  if (parameters.operation == '/') {
+  if (operation == '/') {
     c = d + (d=c, 0);
-    parameters.operation = '*';
+    operation = '*';
   }
   
   // Build the correct answer.
-  if (parameters.operation == '+') {
+  if (operation == '+') {
     denominator = b * d;
     nominator = a * d + c * b;
     gcd = waxonUtils.gcd(nominator, denominator);
     denominator = denominator / gcd;
     nominator = nominator / gcd;
   }
-  else if (parameters.operation == '*') {
+  else if (operation == '*') {
     denominator = b * d;
     nominator = a * c;
     gcd = waxonUtils.gcd(nominator, denominator);
@@ -88,13 +89,13 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
   }
   else if (waxonUtils.gcd(answer.d, answer.n) == -1) {
     response = {
-      result : 0,
+      code : 0,
       message : 'Ditt svar är korrekt, men du bör undvika negativa tal i nämnaren.',
     };
   }
   else if ((answer.n / answer.d) == (nominator / denominator)) {
     response = {
-      result : 0,
+      code : 0,
       message : 'Ditt svar är korrekt, men inte förkortat så långt som möjligt.',
     };
   }
@@ -104,6 +105,3 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
   
   return response;
 };
-
-waxon.addQuestion(fractionsMixed);
-
