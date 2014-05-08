@@ -95,12 +95,8 @@ var waxonUtils = (function() {
     var2 = var2 || 'x';
     expression1 = preParseExpression(expression1, [var1]);
     expression2 = preParseExpression(expression2, [var2]);
-    Logger.log(expression1);
-    Logger.log(expression2);
     expression1 = Parser.parse(expression1);
     expression2 = Parser.parse(expression2);
-    Logger.log(expression1.toString());
-    Logger.log(expression2.toString());
     var x, vars1 = {}, vars2 = {};
 
     // Run five evaluations of random numbers between -10 and 10, to see if the expressions
