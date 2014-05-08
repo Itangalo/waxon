@@ -151,7 +151,9 @@ var waxon = (function () {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
-    stack[index] = processQuestion(stack[index]);
+    for (var index in stack) {
+      stack[index] = processQuestion(stack[index]);
+    }
     entry.stack = stack;
     db.save(entry);
     questionStack = stack;
