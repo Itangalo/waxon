@@ -38,11 +38,104 @@ var waxonUtils = (function() {
     return app.createImage('http://latex.codecogs.com/png.latex?' + expression);
   }
 
+  function preParseExpression(expressionString, variables) {
+    var variables = variables.join('');
+
+    // Build an object with replacement rules. (The order matters!)
+    var re = {};
+    // Turns '2,5' into '2.5', but leaves '(2, 5)' untouched. Good for Swedish people.
+    re.commaAsDecimal = {
+      expr : /(\d)[,]+(\d)/,
+      repl : '$1.$2',
+    }
+    // Turns '2sin(x)' into '2*sin(x)'.
+    re.letterCoefficients = {
+      expr : /(\d)([a-z])/i,
+      repl : '($1*$2)',
+    };
+    // Turns '2/xy' into '2/(x*y)'.
+    re.parenthesizeVariableSequences = {
+      expr : new RegExp('([' + variables + ']+)([' + variables + ']+)'),
+      repl : '($1*$2)',
+    };
+    // Turns '2(x+5)' into '2*(x+5)'.
+    re.parenthesisCoefficients = {
+      expr : /(\d+)([(])/i,
+      repl : '$1*$2'
+    };
+    // Turns '(x+1)(x+2)' into '(x+1)*(x+2)'.
+    re.parenthesisMultiplication = {
+      expr : /([)])([(])/,
+      repl : '$1*$2',
+    };
+    // Resolves remaining negative signs: 'x^(-(2*y))' to x^((-1)*2*y)
+    re.negativeSign = {
+      expr : new RegExp('([^0-9a-z(])[-]+([(])'),
+      repl : '$1((-1)*',
+    };
+
+
+    // Apply the replacement rules.
+    for (var i in re) {
+      while (expressionString.replace(re[i].expr, re[i].repl) != expressionString) {
+        expressionString = expressionString.replace(re[i].expr, re[i].repl);
+      }
+    }
+    return expressionString;
+  }
+
+  /**
+   * Compares two algebraic expressions, to see if they are the same.
+   *
+   * The algorithm only works with one-variable expressions. If other variable names
+   * than 'x' are used, they should be specified in var1 and var2.
+   */
+  function compareExpressions(expression1, expression2, var1, var2) {
+    var1 = var1 || 'x';
+    var2 = var2 || 'x';
+    expression1 = preParseExpression(expression1, [var1]);
+    expression2 = preParseExpression(expression2, [var2]);
+    Logger.log(expression1);
+    Logger.log(expression2);
+    expression1 = Parser.parse(expression1);
+    expression2 = Parser.parse(expression2);
+    Logger.log(expression1.toString());
+    Logger.log(expression2.toString());
+    var x, vars1 = {}, vars2 = {};
+
+    // Run five evaluations of random numbers between -10 and 10, to see if the expressions
+    // yield the same values. (Yes, this is an ugly way of comparing the expressions. But
+    // it is cheap and it works for the practical purposes.)
+    for (var i = 0; i < 5; i++) {
+      x = waxonUtils.randomInt(-100, 100) / 10;
+      vars1[var1] = x;
+      vars2[var2] = x;
+      // The rounding here is to prevent calculation errors to give false negatives.
+      try {
+        if (Math.round(expression1.evaluate(vars1) * 1000) != Math.round(expression2.evaluate(vars2) * 1000)) {
+          return -1;
+        }
+      }
+      catch(e) {
+        // If both expressions cannot be parsed, try parsing one of them. If this succeeds,
+        // then the expressions cannot be the same.
+        try {
+          expression1.evaluate(vars1);
+          return -2;
+        }
+        catch(e) {
+        }
+      }
+    }
+    return 1;
+  }
+
   // The methods in waxonUtils.
   return {
     randomInt : randomInt,
     gcd : gcd,
     latex2image : latex2image,
+    preParseExpression : preParseExpression,
+    compareExpressions : compareExpressions,
   }
-
 }) ();
