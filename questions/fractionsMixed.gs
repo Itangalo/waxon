@@ -22,7 +22,7 @@ fractionsMixed.questionElements = function(parameters) {
   if (parameters.operation == '*') {
     parameters.operation = '\\cdot ';
   }
-  
+
   var text = app.createLabel('Beräkna och förenkla så långt som möjligt:');
   var expression = waxonUtils.latex2image('\\frac{' + parameters.a + '}{' + parameters.b + '}' + parameters.operation + '\\frac{' + parameters.c + '}{' + parameters.d + '}');
   return {
@@ -30,7 +30,7 @@ fractionsMixed.questionElements = function(parameters) {
     expression : expression,
   }
 };
-  
+
 fractionsMixed.evaluateAnswer = function(parameters, input) {
   var denominator, nominator, gcd, response, a, b, c, d, operation;
   a = parameters.a;
@@ -49,7 +49,7 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
     c = d + (d=c, 0);
     operation = '*';
   }
-  
+
   // Build the correct answer.
   if (operation == '+') {
     denominator = b * d;
@@ -83,7 +83,7 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
   }
   answer.n = parseInt(answer[0]);
   answer.d = parseInt(answer[1]);
-  
+
   if (answer.n == nominator && answer.d == denominator) {
     response = 1;
   }
@@ -102,6 +102,6 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
   else {
     response = -1;
   }
-  
+
   return response;
 };

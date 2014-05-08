@@ -45,13 +45,13 @@ simpleAddition.evaluateAnswer = function(parameters, input) {
   // The 'input' argument contains the user input, divided into properties.
   var enteredSum = parseInt(input.answer);
   var correctSum = parameters.a + parameters.b;
-  
+
   // The quickest way of giving thumb's up or down is returning a positive
   // number (correct answer) or negative number (incorrect answer).
   if (enteredSum == correctSum) {
     return 1;
   }
-  
+
   // However, you can also return a response code together with a message.
   // This is done on the following form:
   if (enteredSum > correctSum) {
@@ -66,7 +66,7 @@ simpleAddition.evaluateAnswer = function(parameters, input) {
       message : 'Too little!',
     }
   }
-  
+
   // You can also return a zero-valued response, which is interpreted as
   // something close to correct and maybe worth a second answer. How the
   // answer is actually processed is determined by the frame in which the

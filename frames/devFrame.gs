@@ -24,7 +24,7 @@ devFrame.drawAreas = function() {
     margin : '3px',
     padding : '3px',
   }
-  
+
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
   waxon.addArea('feedbackarea', attributes);
@@ -44,11 +44,11 @@ devFrame.drawAreas = function() {
 devFrame.processResponse = function(responseCode, responseMessage) {
   var app = UiApp.getActiveApplication();
 
-  waxon.clearArea('feedbackarea');  
+  waxon.clearArea('feedbackarea');
   waxon.addToArea('feedbackarea', app.createLabel('Response code: ' + responseCode));
   waxon.addToArea('feedbackarea', app.createLabel('Response message: ' + responseMessage));
-  
-  
+
+
   if (responseCode > 0) {
     waxon.removeQuestion();
     waxon.addToArea('feedbackarea', 'Ger nästa fråga...');

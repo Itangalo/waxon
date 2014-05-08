@@ -17,7 +17,7 @@ var waxonUtils = (function() {
       return this.randomInt(min, max, disallowed);
     }
   }
-  
+
   /**
    * Returns the greatest common denominator for integers a and b.
    *
