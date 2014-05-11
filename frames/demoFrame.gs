@@ -38,6 +38,7 @@ demoFrame.drawAreas = function() {
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
   waxon.addArea('feedbackarea', attributes);
+  waxon.addArea('resultarea', attributes);
 //  attributes.visible = 'false';
 //  waxon.addArea('debug', attributes);
 
@@ -56,16 +57,30 @@ demoFrame.processResponse = function(responseCode, responseMessage) {
   var app = UiApp.getActiveApplication();
 
   waxon.clearArea('feedbackarea');
+  waxon.clearArea('resultarea');
+  var question = waxon.getQuestionInfo();
+  var result = waxon.getUserData('result');
 
+  // If there is no result data yet, build empty strings.
+  if (result == null) {
+    for (var id in waxon.questionIds) {
+      result[waxon.questionIds[id]] = result[waxon.questionIds[id]] || '';
+    }
+  }
+
+  // Process responses. Only give new question on correct answer.
   if (responseCode < -1) {
     waxon.addToArea('feedbackarea', 'Ditt svar går inte att tolka eller verkar jättefel.');
+    result[question.id] += '-';
   }
   else if (responseCode == -1) {
     waxon.addToArea('feedbackarea', 'Fel. Sorry.');
+    result[question.id] += '-';
   }
   else if (responseCode > 0) {
     waxon.removeQuestion();
     waxon.addToArea('feedbackarea', 'Rätt! Bygger nästa fråga...');
+    result[question.id] += '+';
   }
   else {
     waxon.addToArea('feedbackarea', 'Ditt svar är nästan rätt. Kolla och försök igen.');
@@ -73,5 +88,16 @@ demoFrame.processResponse = function(responseCode, responseMessage) {
   if (responseMessage != '') {
     waxon.addToArea('feedbackarea', app.createLabel('Mer information: ' + responseMessage));
   }
+
+  // Trim the result string if it is longer than 10 characters.
+  if (result[question.id].length > 10) {
+    result[question.id] = result[question.id].substring(1);
+  };
+  waxon.setUserData(result, 'result');
+  // Display the results for the different question types.
+  for (var id in waxon.questionIds) {
+    waxon.addToArea('resultarea', waxon.questionIds[id] + ': ' + result[waxon.questionIds[id]]);
+  }
+
   return app;
 }
