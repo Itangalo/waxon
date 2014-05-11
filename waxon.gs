@@ -72,7 +72,7 @@ var waxon = (function () {
   function getUserData(storeId, userId) {
     // Verify that we have something that looks like a valid storeId.
     if (typeof storeId != 'string') {
-      return null;
+      return false;
     }
     // Check if we have some cached data for this storeId.
     if (cache[storeId] != undefined) {
@@ -120,6 +120,49 @@ var waxon = (function () {
     // Store the data in the database and in the cache.
     cache[storeId] = data;
     entry[storeId] = data;
+    return db.save(entry).getId();
+  }
+
+  // Fetches stored data with a given store Id.
+  function getGlobalData(storeId) {
+    // Verify that we have something that looks like a valid storeId.
+    if (typeof storeId != 'string') {
+      return false;
+    }
+
+    var entry;
+    var db = ScriptDb.getMyDb();
+    var result = db.query({storeId : storeId});
+
+    if (result.hasNext() == false) {
+      return {};
+    }
+    else {
+      var entry = result.next();
+      Logger.log(entry);
+      return entry.data;
+    }
+  }
+
+  // Stores data with a given store Id.
+  function setGlobalData(data, storeId) {
+    if (typeof storeId != 'string') {
+      return false;
+    }
+    var entry;
+    var db = ScriptDb.getMyDb();
+    var result = db.query({storeId : storeId});
+
+    // If we don't have any stored data yet, create an entry with this ID.
+    if (result.hasNext() == false) {
+      entry = {storeId : storeId};
+    }
+    else {
+      entry = result.next();
+    }
+
+    // Store the data in the database and in the cache.
+    entry['data'] = data;
     return db.save(entry).getId();
   }
 
@@ -298,6 +341,8 @@ var waxon = (function () {
     // Methods
     getUserData : getUserData,
     setUserData : setUserData,
+    getGlobalData : getGlobalData,
+    setGlobalData : setGlobalData,
     addArea : addArea,
     addToArea : addToArea,
     clearArea : clearArea,
