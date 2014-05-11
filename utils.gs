@@ -35,7 +35,7 @@ var waxonUtils = (function() {
    */
   function latex2image(expression) {
     var app = UiApp.getActiveApplication();
-    return app.createImage('http://latex.codecogs.com/png.latex?' + expression);
+    return app.createImage('http://latex.codecogs.com/png.latex?\\dpi{120} ' + expression);
   }
 
   function preParseExpression(expressionString, variables) {
