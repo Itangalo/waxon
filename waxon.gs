@@ -10,6 +10,7 @@ function doGet() {
 
   var questionInfo = waxon.getQuestionInfo();
   waxon.buildQuestion(questionInfo);
+
   return app;
 }
 
@@ -20,6 +21,7 @@ var waxon = (function () {
   // Private variables
   var currentFrame = null;
   var questionStack = [];
+  var cache = {};
   // Public variables
   var frames = {};
   var questions = {};
@@ -63,6 +65,62 @@ var waxon = (function () {
     else {
       return Session.getActiveUser().getEmail();
     }
+  }
+
+  // Fetches stored data with a given store Id, for a specified user. If no
+  // user is specified, the acting user will be used.
+  function getUserData(storeId, userId) {
+    // Verify that we have something that looks like a valid storeId.
+    if (typeof storeId != 'string') {
+      return null;
+    }
+    // Check if we have some cached data for this storeId.
+    if (cache[storeId] != undefined) {
+      return cache[storeId];
+    }
+
+    var entry;
+    var db = ScriptDb.getMyDb();
+    userId = userId || getUserId();
+    var result = db.query({userId : userId});
+
+    // If we don't have any stored data for this user yet, create an entry for this user.
+    if (result.hasNext() == false) {
+      entry = {userId : getUserId()};
+    }
+    else {
+      entry = result.next();
+    }
+
+    // Store the data in the cache, for quicker fetch next time.
+    cache[storeId] = entry[storeId] || null;
+
+    return entry[storeId] || null;
+  }
+
+  // Stores data with a given store Id, for a specified user. If no user is
+  // specified, the acting user will be used.
+  function setUserData(data, storeId, userId) {
+    if (typeof storeId != 'string') {
+      return false;
+    }
+    var entry;
+    var db = ScriptDb.getMyDb();
+    userId = userId || getUserId();
+    var result = db.query({userId : userId});
+
+    // If we don't have any stored data yet, create an entry for this user.
+    if (result.hasNext() == false) {
+      entry = {userId : getUserId()};
+    }
+    else {
+      entry = result.next();
+    }
+
+    // Store the data in the database and in the cache.
+    cache[storeId] = data;
+    entry[storeId] = data;
+    return db.save(entry).getId();
   }
 
 /**
@@ -124,56 +182,21 @@ var waxon = (function () {
  */
 
   // Fetches (and if necessary builds) the question stack for the acting
-  // user. Also populates the first entry in the stack with parameters, and
-  // stores the stack to the database for persistence between page loads.
-  // (Argument 'index' can be used to pre-build another entry.)
-  function getQuestionStack(index) {
-    index = index || 0;
-    // If there is a pre-built stack and processed stack, use it.
-    if (questionStack.length != 0 && questionStack[index].processed == true) {
-      return questionStack;
-    }
-
-    var stack, entry;
-    var db = ScriptDb.getMyDb();
-    var result = db.query({userId : getUserId()});
-    if (result.hasNext() == false) {
-      entry = {userId : getUserId()};
-    }
-    else {
-      entry = result.next();
-    }
-
-    if (typeof entry.stack == 'object' && entry.stack.length > 0) {
-      stack = entry.stack;
-    }
-    else {
+  // user. Also populates the entries in the stack with parameters, and
+  // stores the stack for persistence between page loads.
+  function getQuestionStack() {
+    var stack = getUserData('stack');
+    if (stack == null) {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
     for (var index in stack) {
-      stack[index] = processQuestion(stack[index]);
+      if (stack[index].processed != true) {
+        stack[index] = processQuestion(stack[index]);
+      }
     }
-    entry.stack = stack;
-    db.save(entry);
-    questionStack = stack;
+    setUserData(stack, 'stack');
     return stack;
-  }
-
-  // Saves a new question stack, for persistance between page loads.
-  function setQuestionStack(stack) {
-    var stack, entry;
-    var db = ScriptDb.getMyDb();
-    var result = db.query({userId : getUserId()});
-    if (result.hasNext() == false) {
-      entry = {userId : getUserId()};
-    }
-    else {
-      entry = result.next();
-    }
-    entry.stack = stack;
-    db.save(entry);
-    questionStack = stack;
   }
 
   // Populates a question (in the question stack) with data that is needed
@@ -204,7 +227,7 @@ var waxon = (function () {
   // index in the question stack. Index defaults to the first question.
   function getQuestionInfo(index) {
     index = index || 0;
-    return getQuestionStack(index)[index];
+    return getQuestionStack()[index];
   }
 
   // Removes the topmost question in the stack, or the specified question.
@@ -212,14 +235,14 @@ var waxon = (function () {
     index = index || 0;
     var stack = getQuestionStack();
     stack.splice(index, 1);
-    setQuestionStack(stack);
+    setUserData(stack, 'stack');
   }
 
   // Fetches the parameters from a question in the question stack, assuming the
   // parameters are already built. Uses first question if none is specified.
   function readParameters(index) {
     index = index || 0;
-    var stack = this.getQuestionStack();
+    var stack = getQuestionStack();
     return stack[index].parameters;
   }
 
@@ -273,6 +296,8 @@ var waxon = (function () {
     questionIds : questionIds,
     frames : frames,
     // Methods
+    getUserData : getUserData,
+    setUserData : setUserData,
     addArea : addArea,
     addToArea : addToArea,
     clearArea : clearArea,
@@ -419,7 +444,7 @@ function debug(variable, reset) {
 }
 
 function reset() {
-  PropertiesService.getUserProperties().deleteAllProperties();
+  PropertiesService.getUserProperties().deleteProperty('waxon user id');
   PropertiesService.getScriptProperties().deleteAllProperties();
   var db = ScriptDb.getMyDb();
   var result = db.query({});
