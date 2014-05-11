@@ -229,7 +229,7 @@ var waxon = (function () {
   // stores the stack for persistence between page loads.
   function getQuestionStack() {
     var stack = getUserData('stack');
-    if (stack == null) {
+    if (stack.length < 1) {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
@@ -444,7 +444,7 @@ function waxonFrame(id) {
     if (responseCode > 0) {
       responseMessage = responseMessage | 'Rätt!';
       // If correctly answered, remove the current question from the stack.
-      waxon.questionStack.pop();
+      waxon.removeQuestion();
     }
     else if (responseCode < 0) {
       responseMessage = responseMessage | 'Fel. Försök igen!';
