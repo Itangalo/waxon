@@ -12,6 +12,7 @@ devFrame.buildQuestionStack = function() {
   stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
   stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
 //  stack.push('noMoreQuestions');
+  stack = ['multiplyingBinomials'];
   return stack;
 };
 

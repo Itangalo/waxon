@@ -50,8 +50,8 @@ var waxonUtils = (function() {
     }
     // Turns '2sin(x)' into '2*sin(x)'.
     re.letterCoefficients = {
-      expr : /(\d)([a-z])/i,
-      repl : '($1*$2)',
+      expr : /(\d+)([a-z])/i,
+      repl : '$1*$2',
     };
     // Turns '2/xy' into '2/(x*y)'.
     re.parenthesizeVariableSequences = {

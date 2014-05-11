@@ -85,5 +85,25 @@ multiplyingBinomials.questionElements = function(parameters) {
 
 multiplyingBinomials.evaluateAnswer = function(parameters, input) {
   var result = waxonUtils.compareExpressions(parameters.expression, input.answer);
+
+  if (input.answer.indexOf('(') > -1) {
+    return {
+      code : Math.min(result, -1),
+      message : 'Utvecklade uttryck bör inte innehålla parenteser.',
+    };
+  }
+  if (input.answer.indexOf('x^2') == -1) {
+    return {
+      code : -3,
+      message : 'Ditt uttryck innehåller ingen x^2-term, och kan därför inte vara rätt svar.',
+    };
+  }
+  if (input.answer.match(/[x]/g).length > 2) {
+    return {
+      code : -3,
+      message : 'Ditt uttryck har för många termer som innehåller x. Förenkla uttrycket!',
+    };
+  }
+
   return result;
 };

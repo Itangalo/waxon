@@ -109,7 +109,7 @@ var waxon = (function () {
 
   // TODO.
   function resolveFrame() {
-    return 'devFrame';
+    return 'demoFrame';
   }
 
   function addQuestion(question, isNonQuestion) {
@@ -308,7 +308,7 @@ function waxonQuestion(id, isNonQuestion) {
     var app = UiApp.getActiveApplication();
     var element1 = app.createLabel('I am a question built on random parameters a (' + parameters.a + ') and b (' + parameters.b + ').');
     var element2 = app.createLabel('The question may be built on several elements, including images and more.');
-    var element3 = app.waxonUtils.latex2image('\\frac{x^' + parameters.a + '}{x^' + parameters.a + '-' + parameters.b + '}');
+    var element3 = waxonUtils.latex2image('\\frac{x^' + parameters.a + '}{x^' + parameters.a + '-' + parameters.b + '}');
     return {
       element1 : element1,
       element2 : element2,
