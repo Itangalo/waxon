@@ -38,18 +38,29 @@ demoFrame.drawAreas = function() {
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
   waxon.addArea('feedbackarea', attributes);
+
   waxon.addArea('resultarea', attributes);
-//  attributes.visible = 'false';
-//  waxon.addArea('debug', attributes);
+  var result = waxon.getUserData('result');
+  // If there is no result data yet, build empty strings.
+  if (result == null) {
+    for (var id in waxon.questionIds) {
+      result[waxon.questionIds[id]] = result[waxon.questionIds[id]] || '';
+    }
+    waxon.setUserData(result, 'result');
+  }
+  // Display the results for the different question types.
+  for (var id in waxon.questionIds) {
+    waxon.addToArea('resultarea', waxon.questionIds[id] + ': ' + result[waxon.questionIds[id]]);
+  }
 
   delete(attributes.border);
   delete(attributes.background);
   waxon.addArea('infobox', attributes);
   waxon.addToArea('infobox', 'Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.');
-  waxon.addToArea('infobox', 'Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.');
-  waxon.addToArea('infobox', 'I denna tidiga proof-of-concept finns bara tre typer av frågor (enkel addition, bråkräkning, samt utveckling av parentesuttryck).');
-  waxon.addToArea('infobox', 'Det läge som används för att träna på frågor på denna sida ger oändligt många frågor, med relativ sannolikhet 5/10/20 för de olika frågetyperna ovan. Om waxon-idén lyfter fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).');
-  waxon.addToArea('infobox', app.createLabel('Projektet är open source och går att hitta på https://github.com/Itangalo/waxon'));
+  waxon.addToArea('infobox', 'Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.', {fontSize : '12px'});
+  waxon.addToArea('infobox', 'I denna tidiga proof-of-concept finns bara tre typer av frågor (enkel addition, bråkräkning, samt utveckling av parentesuttryck).', {fontSize : '12px'});
+  waxon.addToArea('infobox', 'Det läge som används för att träna på frågor på denna sida ger oändligt många frågor, med relativ sannolikhet 5/10/20 för de olika frågetyperna ovan. Om waxon-idén lyfter fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).', {fontSize : '12px'});
+  waxon.addToArea('infobox', 'Projektet är open source och går att hitta på https://github.com/Itangalo/waxon', {fontSize : '12px'});
   return app;
 }
 

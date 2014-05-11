@@ -182,13 +182,19 @@ var waxon = (function () {
 
   // Adds a UI element to the specified area. If just a text string is provided,
   // it will be added as a plain label element.
-  function addToArea(area, element) {
+  function addToArea(area, element, attributes) {
+    // Merge the frame's default attributes with any overrides specified by arguments.
+    attributes = attributes || {};
+    for (var i in waxon.frames[waxon.resolveFrame()].attributes) {
+      attributes[i] = attributes[i] || waxon.frames[waxon.resolveFrame()].attributes[i];
+    }
+
     var app = UiApp.getActiveApplication();
     var panel = app.getElementById(area);
     if (typeof element == 'string') {
       element = app.createLabel(element);
     }
-    panel.add(element);
+    panel.add(element.setStyleAttributes(attributes));
     return app;
   }
 
@@ -229,7 +235,7 @@ var waxon = (function () {
   // stores the stack for persistence between page loads.
   function getQuestionStack() {
     var stack = getUserData('stack');
-    if (stack.length < 1) {
+    if (stack == null || stack.length < 1) {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
@@ -416,6 +422,10 @@ function waxonFrame(id) {
     stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
     stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
     return stack;
+  };
+
+  this.attributes = {
+    fontSize : '18px',
   };
 
   this.drawAreas = function() {
