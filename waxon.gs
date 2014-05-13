@@ -139,7 +139,6 @@ var waxon = (function () {
     }
     else {
       var entry = result.next();
-      Logger.log(entry);
       return entry.data;
     }
   }
