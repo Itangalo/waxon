@@ -19,6 +19,40 @@ var waxonUtils = (function() {
   }
 
   /**
+   * Selects a value based on weighted probabilities.
+   *
+   * @variable values
+   *   An object with selectable values as property keys, and associated
+   *   relative probability as values.
+   */
+  function randomSelect(values) {
+    var sum = 0, selected;
+    var values2 = {};
+    for (var i in values) {
+      // Normal case: We have an object with propery keys + weights.
+      if (isNaN(i)) {
+        sum = sum + parseFloat(values[i]);
+        values2[i] = sum;
+      }
+      // Other case: We have an array with numeric keys and returnable values.
+      // Set the weight for each to one.
+      else {
+        Logger.log(i);
+        sum++;
+        values2[values[i]] = sum;
+      }
+    }
+
+    // Select one value at random, taking the weights into account.
+    selected = Math.random() * sum;
+    for (var i in values2) {
+      if (selected <= values2[i]) {
+        return i;
+      }
+    }
+  }
+
+  /**
    * Returns the greatest common denominator for integers a and b.
    *
    * Clever recursive solution taken from http://stackoverflow.com/questions/17445231/js-how-to-find-the-greatest-common-divisor
@@ -129,6 +163,7 @@ var waxonUtils = (function() {
   // The methods in waxonUtils.
   return {
     randomInt : randomInt,
+    randomSelect : randomSelect,
     gcd : gcd,
     latex2image : latex2image,
     preParseExpression : preParseExpression,
