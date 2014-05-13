@@ -37,7 +37,6 @@ var waxonUtils = (function() {
       // Other case: We have an array with numeric keys and returnable values.
       // Set the weight for each to one.
       else {
-        Logger.log(i);
         sum++;
         values2[values[i]] = sum;
       }
