@@ -25,7 +25,7 @@ var waxon = (function () {
   // Public variables
   var frames = {};
   var questions = {};
-  var questionIds = [];
+  var questionIds = {};
 
 /**
  * Meta-functions, for managing property storage.
@@ -211,7 +211,7 @@ var waxon = (function () {
  */
 
   function addFrame(frame) {
-    this.frames[frame.id] = frame;
+    frames[frame.id] = frame;
   }
 
   // TODO.
@@ -220,9 +220,9 @@ var waxon = (function () {
   }
 
   function addQuestion(question, isNonQuestion) {
-    this.questions[question.id] = question;
+    questions[question.id] = question;
     if (isNonQuestion != true) {
-      questionIds.push(question.id);
+      questionIds[question.id] = (question.id);
     }
   }
 
