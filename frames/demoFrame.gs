@@ -2,7 +2,7 @@
  * @file: Frame used for demonstrating waxon.
  */
 
-// Create a new object, inheriting properties from 'waxonQuestion'.
+// Create a new object, inheriting properties from 'waxonFrame'.
 var demoFrame = new waxonFrame('demoFrame');
 
 demoFrame.buildQuestionStack = function() {
