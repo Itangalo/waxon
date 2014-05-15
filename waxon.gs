@@ -29,7 +29,7 @@ var waxon = (function () {
   // Public variables
   var frames = {};
   var questions = {};
-  var questionIds = {};
+  var questionIds = [];
 
 /**
  * Meta-functions, for managing property storage.
@@ -174,13 +174,14 @@ var waxon = (function () {
  * Functions for managing areas/UI.
  */
   // Adds a new area, with specified CSS-attributes.
-  function addArea(name, attributes) {
+  function addArea(name, attributes, label) {
     var app = UiApp.getActiveApplication();
-    app.add(
-      app.createScrollPanel(
-        app.createVerticalPanel().setId(name).setWidth('100%')
-      ).setWidth('640px').setId(name + '-wrapper').setStyleAttributes(attributes || {})
-    );
+    var captionPanel = app.createCaptionPanel(label || '').setStyleAttributes({border : 'none', padding : '0px', margin : '0px'});//.setStyleAttributes(attributes || {});
+    var scrollPanel = app.createScrollPanel().setId(name + '-wrapper').setStyleAttributes(attributes || {});
+    var container = app.createVerticalPanel().setId(name);
+    captionPanel.add(scrollPanel);
+    scrollPanel.add(container);
+    app.add(captionPanel);
     return app;
   }
 
@@ -215,7 +216,7 @@ var waxon = (function () {
  */
 
   function addFrame(frame) {
-    frames[frame.id] = frame;
+    this.frames[frame.id] = frame;
   }
 
   // TODO.
@@ -224,9 +225,9 @@ var waxon = (function () {
   }
 
   function addQuestion(question, isNonQuestion) {
-    questions[question.id] = question;
+    this.questions[question.id] = question;
     if (isNonQuestion != true) {
-      questionIds[question.id] = question.id;
+      questionIds.push(question.id);
     }
   }
 
