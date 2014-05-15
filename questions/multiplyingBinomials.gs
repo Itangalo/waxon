@@ -4,6 +4,8 @@
  */
 var multiplyingBinomials = new waxonQuestion('multiplyingBinomials');
 
+multiplyingBinomials.title = 'Multiplicera parentesuttryck';
+
 multiplyingBinomials.generateParameters = function(option) {
   var possibleOptions = ['binomial', 'square', 'conjugate'];
   var b1, b2, a, c1, c2, k1, k2, op1 = '+', op2 = '+';
@@ -107,3 +109,12 @@ multiplyingBinomials.evaluateAnswer = function(parameters, input) {
 
   return result;
 };
+
+multiplyingBinomials.helpElements = function() {
+  var app = UiApp.getActiveApplication();
+  return {
+    video1 : app.createAnchor('Multiplicera parenteser', 'https://www.youtube.com/watch?v=ygC0RkAEQNk'),
+    video2 : app.createAnchor('Konjugatregeln', 'https://www.youtube.com/watch?v=2nWTYbyYFeI'),
+    video3 : app.createAnchor('Kvadreringsreglerna', 'https://www.youtube.com/watch?v=22DXw-2K9Ug'),
+  };
+}
