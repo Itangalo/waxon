@@ -26,15 +26,23 @@ var waxonUtils = (function() {
    *   relative probability as values.
    */
   function randomSelect(values) {
-    var sum = 0, selected;
-    for (var i in values) {
-      sum = sum + parseFloat(values[i]);
-      values[i] = sum;
+    // If we are handed an array, simply return a random element.
+    if (Array.isArray(values)) {
+      return values[Math.floor(Math.random() * values.length)];
     }
-    selected = Math.random() * sum;
-    for (var i in values) {
-      if (selected <= values[i]) {
-        return i;
+
+    // If we are handed an object, select an element by weighted probability.
+    if (typeof values == 'object') {
+      var sum = 0, selected;
+      for (var i in values) {
+        sum = sum + parseFloat(values[i]);
+        values[i] = sum;
+      }
+      selected = Math.random() * sum;
+      for (var i in values) {
+        if (selected <= values[i]) {
+          return i;
+        }
       }
     }
   }
