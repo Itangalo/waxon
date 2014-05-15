@@ -29,7 +29,7 @@ var waxon = (function () {
   // Public variables
   var frames = {};
   var questions = {};
-  var questionIds = [];
+  var questionIds = {};
 
 /**
  * Meta-functions, for managing property storage.
@@ -216,7 +216,7 @@ var waxon = (function () {
  */
 
   function addFrame(frame) {
-    this.frames[frame.id] = frame;
+    frames[frame.id] = frame;
   }
 
   // TODO.
@@ -225,9 +225,9 @@ var waxon = (function () {
   }
 
   function addQuestion(question, isNonQuestion) {
-    this.questions[question.id] = question;
+    questions[question.id] = question;
     if (isNonQuestion != true) {
-      questionIds.push(question.id);
+      questionIds[question.id] = question.id;
     }
   }
 
@@ -318,6 +318,7 @@ var waxon = (function () {
     var app = UiApp.getActiveApplication();
     waxon.clearArea('questionarea');
     waxon.clearArea('answerarea');
+    waxon.clearArea('helparea');
 
     var question = waxon.questions[questionInfo.id];
     var parameters = questionInfo.parameters;
@@ -339,6 +340,11 @@ var waxon = (function () {
       handler.addCallbackElement(answerElements[i]);
     }
     waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler));
+
+    var helpElements = question.helpElements(parameters);
+    for (var i in helpElements) {
+      waxon.addToArea('helparea', helpElements[i]);
+    }
 
     return app;
   }
@@ -423,7 +429,7 @@ function waxonQuestion(id, isNonQuestion) {
   };
 
   // Creates an object with UI elements with help: video links, further instruciton, etc.
-  this.help = function() {
+  this.helpElements = function() {
     return {};
   }
 };
@@ -458,8 +464,10 @@ function waxonFrame(id) {
 
     waxon.addArea('questionarea', attributes);
     waxon.addArea('answerarea', attributes);
-    waxon.addArea('feedbackarea', attributes);
-    attributes.visible = 'false';
+    waxon.addArea('feedbackarea', attributes, 'Feedback');
+    waxon.addArea('helparea', attributes, 'Hjälp');
+    attributes.visibility = 'none';
+    waxon.addArea('resultarea', attributes);
     waxon.addArea('debug', attributes);
 
     return app;
