@@ -20,15 +20,17 @@ demoFrame.drawAreas = function() {
     border : 'thin black solid',
     minHeight : '100px',
     maxHeight : '200px',
+    width : '320px',
     margin : '3px',
     padding : '3px',
   }
 
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
-  waxon.addArea('feedbackarea', attributes);
+  waxon.addArea('feedbackarea', attributes, 'Feedback');
+  waxon.addArea('helparea', attributes, 'Hjälp');
 
-  waxon.addArea('resultarea', attributes);
+  waxon.addArea('resultarea', attributes, 'Resultat');
   var result = waxon.getUserData('result');
   // If there is no result data yet, build empty strings.
   if (result == null) {
@@ -46,7 +48,7 @@ demoFrame.drawAreas = function() {
   delete(attributes.border);
   delete(attributes.background);
   waxon.addArea('infobox', attributes);
-  waxon.addToArea('infobox', 'Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.');
+  waxon.addToArea('infobox', 'Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.', {fontSize : '12px'});
   waxon.addToArea('infobox', 'Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.', {fontSize : '12px'});
   waxon.addToArea('infobox', 'I denna tidiga proof-of-concept finns bara tre typer av frågor (enkel addition, bråkräkning, samt utveckling av parentesuttryck).', {fontSize : '12px'});
   waxon.addToArea('infobox', 'Det läge som används för att träna på frågor på denna sida ger oändligt många frågor, med relativ sannolikhet 1/1/20 för de olika frågetyperna ovan. Om waxon-idén lyfter fungerar kommer det att dyka upp fler typer av frågor, och fler sätt att använda dem (exempelvis diagnoser med färdiga set av frågor, plus sammanställning av resultat för lärare).', {fontSize : '12px'});
