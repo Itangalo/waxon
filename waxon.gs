@@ -377,13 +377,19 @@ function waxonQuestion(id, isNonQuestion) {
   this.id = id;
   waxon.addQuestion(this, isNonQuestion);
 
-  this.generateParameters = function() {
+  // Human-readable name for this question type.
+  this.title = 'Fråga utan namn';
+
+  // Greates the parameters used by the question. May take 'options' being
+  // passed to the question.
+  this.generateParameters = function(options) {
     return {
       a : waxonUtils.randomInt(-10, 10),
       b : waxonUtils.randomInt(-10, 10, [0]),
     };
   };
 
+  // Creates an object with UI elements to display as the actual question.
   this.questionElements = function(parameters) {
     var app = UiApp.getActiveApplication();
     var element1 = app.createLabel('I am a question built on random parameters a (' + parameters.a + ') and b (' + parameters.b + ').');
@@ -396,6 +402,7 @@ function waxonQuestion(id, isNonQuestion) {
     }
   };
 
+  // Creates an object with UI elements to submit answer to the question.
   this.answerElements = function(parameters) {
     var app = UiApp.getActiveApplication();
     var label = app.createLabel('Svar:');
@@ -406,12 +413,18 @@ function waxonQuestion(id, isNonQuestion) {
     };
   };
 
+  // Evaluates the submitted answer. 'input' contains the full input from the handler.
   this.evaluateAnswer = function(parameters, input) {
     return {
       code : 0,
       message : 'There is no method for evaluating your answer. Sorry.',
     }
   };
+
+  // Creates an object with UI elements with help: video links, further instruciton, etc.
+  this.help = function() {
+    return {};
+  }
 };
 
 function waxonFrame(id) {
