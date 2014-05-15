@@ -27,25 +27,13 @@ var waxonUtils = (function() {
    */
   function randomSelect(values) {
     var sum = 0, selected;
-    var values2 = {};
     for (var i in values) {
-      // Normal case: We have an object with propery keys + weights.
-      if (isNaN(i)) {
-        sum = sum + parseFloat(values[i]);
-        values2[i] = sum;
-      }
-      // Other case: We have an array with numeric keys and returnable values.
-      // Set the weight for each to one.
-      else {
-        sum++;
-        values2[values[i]] = sum;
-      }
+      sum = sum + parseFloat(values[i]);
+      values[i] = sum;
     }
-
-    // Select one value at random, taking the weights into account.
     selected = Math.random() * sum;
-    for (var i in values2) {
-      if (selected <= values2[i]) {
+    for (var i in values) {
+      if (selected <= values[i]) {
         return i;
       }
     }
