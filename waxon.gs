@@ -4,6 +4,10 @@
 
 function doGet() {
   var app = UiApp.createApplication();
+  
+  var users = waxon.getGlobalData('users');
+  users[waxon.getUserId()] = waxon.getUserId();
+  waxon.setGlobalData(users, 'users');
 
   var frame = waxon.resolveFrame();
   waxon.frames[frame].drawAreas();
@@ -25,7 +29,7 @@ var waxon = (function () {
   // Public variables
   var frames = {};
   var questions = {};
-  var questionIds = {};
+  var questionIds = [];
 
 /**
  * Meta-functions, for managing property storage.
@@ -74,8 +78,9 @@ var waxon = (function () {
     if (typeof storeId != 'string') {
       return false;
     }
-    // Check if we have some cached data for this storeId.
-    if (cache[storeId] != undefined) {
+    // Check if we have some cached data for this storeId. (Cache only applies
+    // for the acting user, so we need to check that no other user is specified.)
+    if (cache[storeId] != undefined && userId == undefined) {
       return cache[storeId];
     }
 
@@ -210,7 +215,7 @@ var waxon = (function () {
  */
 
   function addFrame(frame) {
-    frames[frame.id] = frame;
+    this.frames[frame.id] = frame;
   }
 
   // TODO.
@@ -219,9 +224,9 @@ var waxon = (function () {
   }
 
   function addQuestion(question, isNonQuestion) {
-    questions[question.id] = question;
+    this.questions[question.id] = question;
     if (isNonQuestion != true) {
-      questionIds[question.id] = (question.id);
+      questionIds.push(question.id);
     }
   }
 
