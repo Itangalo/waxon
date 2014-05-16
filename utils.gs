@@ -62,7 +62,16 @@ var waxonUtils = (function() {
   /**
    * Uses the webservice latex.codecogs.com for building a png from LaTeX expression.
    */
-  function latex2image(expression) {
+  function latex2image(expression, noParse) {
+    var replacements = {
+      '*' : ' \\cdot ',
+      ',' : '{,}',
+    }
+    if (noParse != true) {
+      for (var i in replacements) {
+        expression = expression.replace(i, replacements[i]);
+      }
+    }
     var app = UiApp.getActiveApplication();
     return app.createImage('http://latex.codecogs.com/png.latex?\\dpi{120} ' + expression);
   }
