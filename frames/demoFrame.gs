@@ -118,9 +118,12 @@ demoFrame.summary = function() {
     result = waxon.getUserData('result', user);
     total = 0;
     for (var id in waxon.questionIds) {
-      count = result[waxon.questionIds[id]].split('+').length - 1;
+      if (result[id] == undefined) {
+        result[id] = '';
+      }
+      count = result[id].split('+').length - 1;
       total = total + count;
-      Logger.log(user + '.' + waxon.questionIds[id] + ': ' + count + ' av ' + result[waxon.questionIds[id]].length);
+      Logger.log(user + '.' + id + ': ' + count + ' av ' + result[id].length);
     }
     Logger.log(user + ' totalt: ' + total);
   }
