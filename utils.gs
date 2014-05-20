@@ -76,6 +76,20 @@ var waxonUtils = (function() {
     return app.createImage('http://latex.codecogs.com/png.latex?\\dpi{120} ' + expression);
   }
 
+  /**
+   * Tries to count the number of terms in an expression. (Succeeds with most sane expressions.)
+   */
+  function numberOfTerms(expression) {
+    var simpleSplit = expression.match(/[+-]/g) || [];
+    var negativeSigns = expression.match(/[+-][\D\W][+-]/g) || [];
+    var negativeStart = expression.match(/^[\D\W][+-]/g) || [];
+
+    return simpleSplit.length - negativeSigns.length - negativeStart.length + 1;
+  }
+
+  /**
+   * Parses an expression string, allowing Swedish notation and implicit multiplication.
+   */
   function preParseExpression(expressionString, variables) {
     if (Array.isArray(variables)) {
       variables = variables.join('');
@@ -178,6 +192,7 @@ var waxonUtils = (function() {
     randomSelect : randomSelect,
     gcd : gcd,
     latex2image : latex2image,
+    numberOfTerms : numberOfTerms,
     preParseExpression : preParseExpression,
     compareExpressions : compareExpressions,
   }
