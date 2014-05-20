@@ -88,6 +88,12 @@ multiplyingBinomials.questionElements = function(parameters) {
 multiplyingBinomials.evaluateAnswer = function(parameters, input) {
   var result = waxonUtils.compareExpressions(parameters.expression, input.answer);
 
+  if (waxonUtils.numberOfTerms(input.answer) > 3 ) {
+    return {
+      code : Math.min(result, -1),
+      message : 'Ditt uttryck har fler än tre termer. Se om du kan förenkla det (eller om du räknat fel).',
+    };
+  }
   if (input.answer.indexOf('(') > -1) {
     return {
       code : Math.min(result, -1),
