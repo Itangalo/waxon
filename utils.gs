@@ -77,7 +77,15 @@ var waxonUtils = (function() {
   }
 
   function preParseExpression(expressionString, variables) {
-    var variables = variables.join('');
+    if (Array.isArray(variables)) {
+      variables = variables.join('');
+    }
+    else if (typeof variables == 'string') {
+      variables = variables;
+    }
+    else {
+      variables = '';
+    }
 
     // Build an object with replacement rules. (The order matters!)
     var re = {};
