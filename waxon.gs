@@ -385,7 +385,7 @@ function waxonQuestion(id, isNonQuestion) {
   waxon.addQuestion(this, isNonQuestion);
 
   // Human-readable name for this question type.
-  this.title = 'Fråga utan namn';
+  this.title = undefined;
 
   // Greates the parameters used by the question. May take 'options' being
   // passed to the question.
@@ -489,7 +489,7 @@ function waxonFrame(id) {
       responseMessage = responseMessage | 'Nära. Kolla ditt svar och försök igen.';
     }
     // Display the response message to the user.
-    waxon.addToFrame('feedback', app.createLabel(responseMessage));
+    waxon.addToArea('feedback', app.createLabel(responseMessage));
     return app;
   }
 }
