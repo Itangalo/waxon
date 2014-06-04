@@ -46,6 +46,54 @@ var waxonUtils = (function() {
       }
     }
   }
+  
+  /**
+   * Builds a random binomial on the form 'ax + b' or 'a + bx'.
+   *
+   * @variable min
+   *   Lower limit for the coefficient and constant. Defaults to -3.
+   * @variable max
+   *   Upper limit for the coefficient and constant. Defaults to 3.
+   * @variable variable
+   *   The name of the variable to use. Defaults to 'x'.
+   * @variable mode
+   *   Set to 'straight' to only use 'ax + b'. Set to 'reverse' to only use 'a + bx'.
+   *   Defaults to a random selection between the two.
+   */
+  function randomBinomial(min, max, variable, mode) {
+    min = min || -3;
+    max = max || 3;
+    variable = variable || 'x';
+    mode = mode || waxonUtils.randomSelect(['straight', 'reverse']);
+    var a = waxonUtils.randomInt(min, max, [0]);
+    var b = waxonUtils.randomInt(min, max, [0]);
+    switch (mode) {
+      case 'reverse' :
+        if (a == 1) {
+          a = '+';
+        }
+        else if (a == -1) {
+          a = '-';
+        }
+        else if (a > 0) {
+          a = '+' + a;
+        }
+        return '' + b + a + variable;
+        break;
+      default :
+        if (a == 1) {
+          a = '';
+        }
+        else if (a == -1) {
+          a = '-';
+        }
+        if (b > 0) {
+          b = '+' + b;
+        }
+        return a + variable + b;
+        break;
+    }
+  }
 
   /**
    * Returns the greatest common denominator for integers a and b.
@@ -80,11 +128,14 @@ var waxonUtils = (function() {
    * Tries to count the number of terms in an expression. (Succeeds with most sane expressions.)
    */
   function numberOfTerms(expression) {
+    expression = expression.trim();
     var simpleSplit = expression.match(/[+-]/g) || [];
     var negativeSigns = expression.match(/[+-][\D\W][+-]/g) || [];
-    var negativeStart = expression.match(/^[\D\W][+-]/g) || [];
+    if (expression.substring(0, 1) == '+' || expression.substring(0, 1) == '-') {
+      negativeSigns.push('-');
+    }
 
-    return simpleSplit.length - negativeSigns.length - negativeStart.length + 1;
+    return simpleSplit.length - negativeSigns.length + 1;
   }
 
   /**
@@ -190,6 +241,7 @@ var waxonUtils = (function() {
   return {
     randomInt : randomInt,
     randomSelect : randomSelect,
+    randomBinomial : randomBinomial,
     gcd : gcd,
     latex2image : latex2image,
     numberOfTerms : numberOfTerms,
