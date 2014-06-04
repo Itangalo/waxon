@@ -6,6 +6,7 @@
 var demoFrame = new waxonFrame('demoFrame');
 
 demoFrame.buildQuestionStack = function() {
+  return ['googleSheet'];
   var questionWeights = {
     simpleAddition : 1,
     fractionsMixed : 1,
@@ -43,7 +44,7 @@ demoFrame.drawAreas = function() {
   }
   // Display the results for the different question types.
   for (var id in waxon.questionIds) {
-    waxon.addToArea('resultarea', waxon.questionIds[id] + ': ' + result[waxon.questionIds[id]]);
+    waxon.addToArea('resultarea', (waxon.questions[id].title || id) + ': ' + result[id]);
   }
 
   delete(attributes.border);
@@ -72,7 +73,7 @@ demoFrame.processResponse = function(responseCode, responseMessage) {
   // If there is no result data yet, build empty strings.
   if (result == null) {
     for (var id in waxon.questionIds) {
-      result[waxon.questionIds[id]] = result[waxon.questionIds[id]] || '';
+      result[id] = result[id] || '';
     }
   }
 
@@ -104,7 +105,7 @@ demoFrame.processResponse = function(responseCode, responseMessage) {
   waxon.setUserData(result, 'result');
   // Display the results for the different question types.
   for (var id in waxon.questionIds) {
-    waxon.addToArea('resultarea', waxon.questionIds[id] + ': ' + result[waxon.questionIds[id]]);
+    waxon.addToArea('resultarea', (waxon.questions[id].title || id) + ': ' + result[id]);
   }
 
   return app;
