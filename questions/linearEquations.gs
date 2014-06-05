@@ -86,15 +86,13 @@ linearEquations.evaluateAnswer = function(parameters, input) {
   if (leftValue.toFixed(10) == rightValue.toFixed(10)) {
     return 1;
   }
+  else if (leftValue.toFixed(2) == rightValue.toFixed(2)) {
+    return {
+      code : 0,
+      message : 'Ditt svar verkar vara avrundat. Svara i bråkform istället!'
+    };
+  }
   else {
     return -1;
   }
-  if (waxonUtils.numberOfTerms(input.answer) > 1) {
-    return {
-      code : Math.min(result, -3),
-      message : 'Ditt uttryck har fler än två termer. Se om du kan förenkla det (eller om du räknat fel).',
-    };
-  }
-
-  return result;
 };
