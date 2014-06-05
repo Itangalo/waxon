@@ -57,13 +57,19 @@ linearEquations.questionElements = function(parameters) {
   var app = UiApp.getActiveApplication();
   var label = app.createLabel('Lös ut x ur följande ekvation:');
   var expression = waxonUtils.latex2image(parameters.expression);
-  var help = app.createLabel('Svara i exakt form: antingen ett exakt decimaltal eller ett bråktal.');
   return {
     label : label,
     expression : expression,
-    help : help,
   }
 };
+
+linearEquations.helpElements = function(parameters) {
+  var app = UiApp.getActiveApplication();
+  var help = app.createLabel('Svara i exakt form: antingen ett exakt decimaltal eller ett bråktal.');
+  return {
+    help : help,
+  }
+}
 
 linearEquations.answerElements = function(parameters) {
   var app = UiApp.getActiveApplication();
@@ -75,13 +81,10 @@ linearEquations.answerElements = function(parameters) {
   }
 };
 
-
 linearEquations.evaluateAnswer = function(parameters, input) {
   var answerValue = Parser.parse(waxonUtils.preParseExpression(input.answer, ['x'])).evaluate();
   var leftValue = Parser.parse(waxonUtils.preParseExpression(parameters.left, ['x'])).evaluate({x : answerValue});
   var rightValue = Parser.parse(waxonUtils.preParseExpression(parameters.right, ['x'])).evaluate({x : answerValue});
-  Logger.log(leftValue);
-  Logger.log(rightValue);
 
   if (leftValue.toFixed(10) == rightValue.toFixed(10)) {
     return 1;
