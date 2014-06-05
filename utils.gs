@@ -111,6 +111,7 @@ var waxonUtils = (function() {
    * Uses the webservice latex.codecogs.com for building a png from LaTeX expression.
    */
   function latex2image(expression, noParse) {
+    expression = expression.toString();
     var replacements = {
       '*' : ' \\cdot ',
       ',' : '{,}',
