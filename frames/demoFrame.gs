@@ -7,7 +7,7 @@ var demoFrame = new waxonFrame('demoFrame');
 
 demoFrame.buildQuestionStack = function() {
   var IDs = {};
-  for (var id in waxon.questionIDs) {
+  for (var id in waxon.questionIds) {
     IDs[id] = 1;
   }
   return [waxonUtils.randomSelect(IDs)];
