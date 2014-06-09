@@ -49,7 +49,7 @@ demoFrame.drawAreas = function() {
   waxon.addArea('infobox', attributes);
   waxon.addToArea('infobox', 'Det här är en tidig version av projektet "waxon", med mål att göra det lätt att sätta samman uppgifter för mängdträning.', {fontSize : '12px'});
   waxon.addToArea('infobox', 'Tanken är att man ska kunna lägga till nya typer av frågor som egna plugins, och att man ska kunna använda olika lägen för att träna på uppgifterna.', {fontSize : '12px'});
-  waxon.addToArea('infobox', 'I denna tidiga proof-of-concept finns dessa frågor:).', {fontSize : '12px'});
+  waxon.addToArea('infobox', 'I denna tidiga proof-of-concept finns dessa frågor:', {fontSize : '12px'});
   for (var ID in waxon.questionIds) {
       waxon.addToArea('infobox', '* ' + (waxon.questions[ID].title || ID), {fontSize : '12px'});
   }
@@ -108,15 +108,17 @@ demoFrame.processResponse = function(responseCode, responseMessage) {
     waxon.addToArea('resultarea', (waxon.questions[id].title || id) + ': ' + result[id]);
   }
 
+  waxon.setGlobalData(result, 'result', waxon.getUserId());
+
   return app;
 }
 
 // Method that summarizes how things are going for students/users. Stub.
 demoFrame.summary = function() {
   var total, result, count;
-  var users = waxon.getGlobalData('users');
-  for (var user in users) {
-    result = waxon.getUserData('result', user);
+  var allResult = waxon.getGlobalData('result');
+  for (var user in allResult) {
+    var result = allResult[user];
     total = 0;
     for (var id in waxon.questionIds) {
       if (result[id] == undefined) {
