@@ -15,6 +15,8 @@ noMoreQuestions.questionElements = function() {
   }
 };
 
+noMoreQuestions.hideButton = true;
+
 noMoreQuestions.answerElements = function() {
   return;
 }
