@@ -306,7 +306,10 @@ var waxon = (function () {
       waxon.addToArea('answerarea', answerElements[i]);
       handler.addCallbackElement(answerElements[i]);
     }
-    waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).setId('answerSubmit'));
+
+    if (waxon.questions[waxon.getQuestionInfo().id].hideButton != true) {
+      waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).setId('answerSubmit'));
+    }
 
     var helpElements = question.helpElements(parameters);
     for (var i in helpElements) {
