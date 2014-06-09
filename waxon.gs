@@ -71,103 +71,70 @@ var waxon = (function () {
     }
   }
 
-  // Fetches stored data with a given store Id, for a specified user. If no
-  // user is specified, the acting user will be used.
-  function getUserData(storeId, userId) {
-    // Verify that we have something that looks like a valid storeId.
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    // Check if we have some cached data for this storeId. (Cache only applies
-    // for the acting user, so we need to check that no other user is specified.)
-    if (cache[storeId] != undefined && userId == undefined) {
-      return cache[storeId];
-    }
-
-    var entry;
-    var db = ScriptDb.getMyDb();
-    userId = userId || getUserId();
-    var result = db.query({userId : userId});
-
-    // If we don't have any stored data for this user yet, create an entry for this user.
-    if (result.hasNext() == false) {
-      entry = {userId : getUserId()};
-    }
-    else {
-      entry = result.next();
-    }
-
-    // Store the data in the cache, for quicker fetch next time.
-    cache[storeId] = entry[storeId] || null;
-
-    return entry[storeId] || null;
-  }
-
-  // Stores data with a given store Id, for a specified user. If no user is
-  // specified, the acting user will be used.
-  function setUserData(data, storeId, userId) {
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    var entry;
-    var db = ScriptDb.getMyDb();
-    userId = userId || getUserId();
-    var result = db.query({userId : userId});
-
-    // If we don't have any stored data yet, create an entry for this user.
-    if (result.hasNext() == false) {
-      entry = {userId : getUserId()};
-    }
-    else {
-      entry = result.next();
-    }
-
-    // Store the data in the database and in the cache.
-    cache[storeId] = data;
-    entry[storeId] = data;
-    return db.save(entry).getId();
-  }
-
   // Fetches stored data with a given store Id.
-  function getGlobalData(storeId) {
+  function getUserData(storeId) {
     // Verify that we have something that looks like a valid storeId.
     if (typeof storeId != 'string') {
       return false;
     }
-
-    var entry;
-    var db = ScriptDb.getMyDb();
-    var result = db.query({storeId : storeId});
-
-    if (result.hasNext() == false) {
-      return {};
+    var result = PropertiesService.getUserProperties().getProperty(storeId);
+    if (result == null) {
+      return result;
     }
     else {
-      var entry = result.next();
-      return entry.data;
+      return JSON.parse(result);
     }
   }
 
   // Stores data with a given store Id.
-  function setGlobalData(data, storeId) {
+  function setUserData(data, storeId, userId) {
     if (typeof storeId != 'string') {
       return false;
     }
-    var entry;
-    var db = ScriptDb.getMyDb();
-    var result = db.query({storeId : storeId});
+    PropertiesService.getUserProperties().setProperty(storeId, JSON.stringify(data));
+    return;
+  }
 
-    // If we don't have any stored data yet, create an entry with this ID.
-    if (result.hasNext() == false) {
-      entry = {storeId : storeId};
+  // Fetches stored data with a given store Id.
+  function getGlobalData(storeId, subProperty) {
+    // Call recurively if a subProperty is set.
+    if (subProperty != undefined) {
+      var parent = getGlobalData(storeId);
+      if (typeof parent == 'object' && parent != null) {
+        return parent[subProperty];
+      }
+      else {
+        return undefined;
+      }
+    }
+
+    // Verify that we have something that looks like a valid storeId.
+    if (typeof storeId != 'string') {
+      return false;
+    }
+    var result = PropertiesService.getScriptProperties().getProperty(storeId);
+    if (result == null) {
+      return result;
     }
     else {
-      entry = result.next();
+      return JSON.parse(result);
+    }
+  }
+
+  // Stores data with a given store Id.
+  function setGlobalData(data, storeId, subProperty) {
+    if (typeof storeId != 'string') {
+      return false;
+    }
+    // If a sub property should be set, fetch the parent and set sub property.
+    if (subProperty != undefined) {
+      var parent = getGlobalData(storeId) || {};
+      parent[subProperty] = data;
+      data = parent;
     }
 
-    // Store the data in the database and in the cache.
-    entry['data'] = data;
-    return db.save(entry).getId();
+    PropertiesService.getScriptProperties().setProperty(storeId, JSON.stringify(data));
+    return;
   }
 
 /**
@@ -240,7 +207,7 @@ var waxon = (function () {
   // stores the stack for persistence between page loads.
   function getQuestionStack() {
     var stack = getUserData('stack');
-    if (stack == null || stack.length < 1) {
+    if (stack == null || stack.length < 1 || stack == {}) {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
@@ -339,7 +306,7 @@ var waxon = (function () {
       waxon.addToArea('answerarea', answerElements[i]);
       handler.addCallbackElement(answerElements[i]);
     }
-    waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler));
+    waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).setId('answerSubmit'));
 
     var helpElements = question.helpElements(parameters);
     for (var i in helpElements) {
@@ -495,11 +462,12 @@ function waxonFrame(id) {
 }
 
 function checkAnswer(eventInfo) {
+  var start = new Date().getTime();
+  var app = UiApp.getActiveApplication();
   var questionInfo = waxon.getQuestionInfo();
   var parameters = questionInfo.parameters;
   var questionId = questionInfo.id;
 
-  var app = UiApp.getActiveApplication();
   var response = waxon.cleanupResponse(waxon.questions[questionId].evaluateAnswer(parameters, eventInfo.parameter));
 
   waxon.frames[waxon.resolveFrame()].processResponse(response.code, response.message);
@@ -525,11 +493,14 @@ function debug(variable, reset) {
 }
 
 function reset() {
-  PropertiesService.getUserProperties().deleteProperty('waxon user id');
+  PropertiesService.getUserProperties().deleteAllProperties();
   PropertiesService.getScriptProperties().deleteAllProperties();
-  var db = ScriptDb.getMyDb();
-  var result = db.query({});
-  while (result.hasNext()) {
-    db.remove(result.next());
+}
+
+function logTime(sinceTime, message) {
+  if (typeof message == 'string') {
+    Logger.log(message);
   }
+  var now = new Date().getTime();
+  Logger.log(now - sinceTime);
 }
