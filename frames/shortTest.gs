@@ -12,6 +12,11 @@ shortTest.stack = [
   'simpleAddition',
 ];
 
+// Set this to true to allow resetting the test.
+shortTest.demoMode = true;
+
+shortTest.title = 'Exempel på diagnos';
+
 shortTest.buildQuestionStack = function() {
   // Make sure that the stack ends with 'noMoreQuestions'.
   if (this.stack.length == 0 || this.stack[this.stack.length - 1] != 'noMoreQuestions') {
@@ -43,6 +48,13 @@ shortTest.drawAreas = function() {
   waxon.addArea('debug', attributes);
   
   this.displayQuestionNumber();
+
+  if (this.demoMode == true) {
+    waxon.addArea('reset');
+    var app = UiApp.getActiveApplication();
+    waxon.addToArea('reset', app.createButton('starta om', app.createServerHandler('shortTestReset')));
+    waxon.addToArea('reset', '(Knappen finns endast med i demoläge.)', {fontSize : '12px'});
+  }
 
   return app;
 }
@@ -119,4 +131,14 @@ shortTest.summary = function() {
     cellContent.push(row);
   }
   spreadsheet.getActiveSheet().getRange(1, 1, cellContent.length, cellContent[0].length).setValues(cellContent);
+}
+
+// Starts over the test.
+function shortTestReset(eventInfo) {
+  PropertiesService.getUserProperties().deleteProperty('result');
+  PropertiesService.getUserProperties().deleteProperty('stack');
+  waxon.setGlobalData(undefined, 'result', waxon.getUserId());
+  waxon.buildQuestion(waxon.getQuestionInfo());
+  shortTest.displayQuestionNumber();
+  return UiApp.getActiveApplication();
 }
