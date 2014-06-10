@@ -23,7 +23,13 @@ linearEquations.generateParameters = function(options) {
       right = 'x';
       break;
     case 'a' :
-      right = waxonUtils.randomInt(-3, 3, [0]);
+      // We don't want an quation of the type 'x = 4'.
+      if (left == 'x') {
+        right = waxonUtils.randomBinomial();
+      }
+      else {
+        right = waxonUtils.randomInt(-3, 3, [0]);
+      }
       break;
     case '()' :
       right = waxonUtils.randomBinomial();
