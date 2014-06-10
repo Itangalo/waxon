@@ -144,17 +144,8 @@ var waxonUtils = (function() {
   /**
    * Parses an expression string, allowing Swedish notation and implicit multiplication.
    */
-  function preParseExpression(expressionString, variables) {
+  function preParseExpression(expressionString) {
     expressionString = expressionString.toString();
-    if (Array.isArray(variables)) {
-      variables = variables.join('');
-    }
-    else if (typeof variables == 'string') {
-      variables = variables;
-    }
-    else {
-      variables = '';
-    }
 
     // Replace any function names in the expression with tokens, so they won't
     // confuse the replacements for implicit multiplication. (All the functions
