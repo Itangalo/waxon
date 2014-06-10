@@ -61,9 +61,9 @@ var waxonUtils = (function() {
    *   Defaults to a random selection between the two.
    */
   function randomBinomial(min, max, variable, mode) {
-    min = min || -3;
+    min = min || -3;
     max = max || 3;
-    variable = variable || 'x';
+    variable = variable || 'x';
     mode = mode || waxonUtils.randomSelect(['straight', 'reverse']);
     var a = waxonUtils.randomInt(min, max, [0]);
     var b = waxonUtils.randomInt(min, max, [0]);
@@ -130,7 +130,7 @@ var waxonUtils = (function() {
    */
   function numberOfTerms(expression) {
     expression = expression.trim();
-    var simpleSplit = expression.match(/[+-]/g) || [];
+    var simpleSplit = expression.match(/[+-]/g) || [];
     var negativeSigns = expression.match(/[+-][\D\W][+-]/g) || [];
     if (expression.substring(0, 1) == '+' || expression.substring(0, 1) == '-') {
       negativeSigns.push('-');
@@ -143,6 +143,7 @@ var waxonUtils = (function() {
    * Parses an expression string, allowing Swedish notation and implicit multiplication.
    */
   function preParseExpression(expressionString, variables) {
+    expressionString = expressionString.toString();
     if (Array.isArray(variables)) {
       variables = variables.join('');
     }
@@ -203,8 +204,8 @@ var waxonUtils = (function() {
    * than 'x' are used, they should be specified in var1 and var2.
    */
   function compareExpressions(expression1, expression2, var1, var2) {
-    var1 = var1 || 'x';
-    var2 = var2 || 'x';
+    var1 = var1 || 'x';
+    var2 = var2 || 'x';
     expression1 = preParseExpression(expression1, [var1]);
     expression2 = preParseExpression(expression2, [var2]);
     expression1 = Parser.parse(expression1);
