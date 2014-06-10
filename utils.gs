@@ -8,7 +8,9 @@ var waxonUtils = (function() {
    * Optional array 'disallowed' may contain values that may not be used.
    */
   function randomInt(min, max, disallowed) {
-    disallowed = disallowed || [];
+    if (Array.isArray(disallowed) != true) {
+      disallowed = [disallowed];
+    }
     var value = Math.floor(Math.random() * (max - min + 1)) + min;
     if (disallowed.indexOf(value) == -1) {
       return value
