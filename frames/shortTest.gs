@@ -10,10 +10,13 @@ shortTest.stack = [
   'orderOfOps',
   'linearEquations',
   'simpleAddition',
-  'noMoreQuestions',
 ];
 
 shortTest.buildQuestionStack = function() {
+  // Make sure that the stack ends with 'noMoreQuestions'.
+  if (this.stack.length == 0 || this.stack[this.stack.length - 1] != 'noMoreQuestions') {
+    this.stack.push('noMoreQuestions');
+  }
   return shortTest.stack;
 };
 
@@ -38,11 +41,22 @@ shortTest.drawAreas = function() {
   waxon.addArea('feedbackarea', attributes);
   waxon.addArea('helparea', attributes);
   waxon.addArea('debug', attributes);
-
-  var result = waxon.getUserData('result') || [];
-  waxon.addToArea('infoarea', 'Fråga ' + (result.length + 1) + ' av ' + (result.length + waxon.getQuestionStack().length), {fontSize : '12px'});
+  
+  this.displayQuestionNumber();
 
   return app;
+}
+
+// Prints the number of the question in the info area.
+shortTest.displayQuestionNumber = function() {
+  var result = waxon.getUserData('result') || [''];
+  waxon.clearArea('infoarea');
+  if (result.length >= this.buildQuestionStack().length) {
+    waxon.addToArea('infoarea', 'Klart.', {fontSize : '12px'});
+  }
+  else {
+    waxon.addToArea('infoarea', 'Fråga ' + (result.length) + ' av ' + (this.buildQuestionStack().length - 1), {fontSize : '12px'});
+  }
 }
 
 shortTest.processResponse = function(responseCode, responseMessage) {
@@ -66,26 +80,43 @@ shortTest.processResponse = function(responseCode, responseMessage) {
     result[0]++;
   }
 
-  // Process responses. Always move on to the next question, regardless of result.
+  // Always move on to the next question, regardless of result.
   waxon.removeQuestion();
 
   waxon.setUserData(result, 'result');
   waxon.setGlobalData(result, 'result', waxon.getUserId());
 
-  waxon.clearArea('infoarea');
-  var result = waxon.getUserData('result') || [];
-  waxon.addToArea('infoarea', 'Fråga ' + (result.length + 1) + ' av ' + (result.length + waxon.getQuestionStack().length), {fontSize : '12px'});
+  this.displayQuestionNumber();
 
   return app;
 }
 
 // Method that summarizes how things are going for students/users. Stub.
 shortTest.summary = function() {
-  var total, result, count;
+  var result, spreadsheet, cellContent, row, numberOfQuestions;
   var allResult = waxon.getGlobalData('result');
-  for (var user in allResult) {
-    var result = allResult[user];
-    var total = result.shift();
-    Logger.log('Totalt ' + total + ' rätt, med följande fördelning: ' + result.join(' '));
+  if (waxon.getGlobalData('resultSheet') == null) {
+    spreadsheet = SpreadsheetApp.create(this.title || ('waxon-resultat ' + new Date()));
+    waxon.setGlobalData(spreadsheet.getId(), 'resultSheet');
   }
+  else {
+    spreadsheet = SpreadsheetApp.openById(waxon.getGlobalData('resultSheet'));
+  }
+  
+  row = this.buildQuestionStack();
+  row.pop();
+  numberOfQuestions = row.length;
+  row.unshift('Antal rätt');
+  row.unshift('Elev');
+  cellContent = [row];
+  
+  for (var user in allResult) {
+    while (allResult[user].length != numberOfQuestions + 1) {
+      allResult[user].push('-');
+    }
+    row = allResult[user];
+    row.unshift(user);
+    cellContent.push(row);
+  }
+  spreadsheet.getActiveSheet().getRange(1, 1, cellContent.length, cellContent[0].length).setValues(cellContent);
 }
