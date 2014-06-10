@@ -48,7 +48,7 @@ var waxonUtils = (function() {
       }
     }
   }
-  
+
   /**
    * Builds a random binomial on the form 'ax + b' or 'a + bx'.
    *
@@ -63,9 +63,9 @@ var waxonUtils = (function() {
    *   Defaults to a random selection between the two.
    */
   function randomBinomial(min, max, variable, mode) {
-    min = min || -3;
+    min = min || -3;
     max = max || 3;
-    variable = variable || 'x';
+    variable = variable || 'x';
     mode = mode || waxonUtils.randomSelect(['straight', 'reverse']);
     var a = waxonUtils.randomInt(min, max, [0]);
     var b = waxonUtils.randomInt(min, max, [0]);
@@ -132,7 +132,7 @@ var waxonUtils = (function() {
    */
   function numberOfTerms(expression) {
     expression = expression.trim();
-    var simpleSplit = expression.match(/[+-]/g) || [];
+    var simpleSplit = expression.match(/[+-]/g) || [];
     var negativeSigns = expression.match(/[+-][\D\W][+-]/g) || [];
     if (expression.substring(0, 1) == '+' || expression.substring(0, 1) == '-') {
       negativeSigns.push('-');
@@ -156,6 +156,21 @@ var waxonUtils = (function() {
       variables = '';
     }
 
+    // Replace any function names in the expression with tokens, so they won't
+    // confuse the replacements for implicit multiplication. (All the functions
+    // and constants used by Parser can be found as properties in Parser.values.)
+    var operators = Object.keys(Parser.values);
+    // Sort the function names by length, to avoid replacing 'sin' in 'arcsin' and
+    // things like that.
+    operators.sort(function(a, b){
+      return b.length - a.length; // ASC -> a - b; DESC -> b - a
+    });
+    for (var operator in operators) {
+      while (expressionString.indexOf(operators[operator] + '(') > -1) {
+        expressionString = expressionString.replace(operators[operator] + '(', '$' + operator);
+      }
+    }
+
     // Build an object with replacement rules. (The order matters!)
     var re = {};
     // Turns '2,5' into '2.5', but leaves '(2, 5)' untouched. Good for Swedish people.
@@ -163,32 +178,13 @@ var waxonUtils = (function() {
       expr : /(\d)[,]+(\d)/,
       repl : '$1.$2',
     }
-    // Turns '2sin(x)' into '2*sin(x)'.
-    re.letterCoefficients = {
-      expr : /(\d+)([a-z])/i,
-      repl : '$1*$2',
+    // Replacements making implicit multiplication explicit:
+    // a(x+1)(x+2) becomes a*(x+1)*(x+2).
+    re.implicit = {
+      expr: /([0-9]+|[a-z\\)])(?=[0-9]+|[a-z\\(])/i,
+      expr: new RegExp('([0-9]+|[a-z\\)])(?=[0-9]+|[a-z\$\\(])'),
+      repl : '$1*',
     };
-    // Turns '2/xy' into '2/(x*y)'.
-    re.parenthesizeVariableSequences = {
-      expr : new RegExp('([' + variables + ']+)([' + variables + ']+)'),
-      repl : '($1*$2)',
-    };
-    // Turns '2(x+5)' into '2*(x+5)'.
-    re.parenthesisCoefficients = {
-      expr : /(\d+)([(])/i,
-      repl : '$1*$2'
-    };
-    // Turns '(x+1)(x+2)' into '(x+1)*(x+2)'.
-    re.parenthesisMultiplication = {
-      expr : /([)])([(])/,
-      repl : '$1*$2',
-    };
-    // Resolves remaining negative signs: 'x^(-(2*y))' to x^((-1)*2*y)
-    re.negativeSign = {
-      expr : new RegExp('([^0-9a-z(])[-]+([(])'),
-      repl : '$1((-1)*',
-    };
-
 
     // Apply the replacement rules.
     for (var i in re) {
@@ -196,6 +192,14 @@ var waxonUtils = (function() {
         expressionString = expressionString.replace(re[i].expr, re[i].repl);
       }
     }
+
+    // Return any function names to the expression.
+    for (var operator in operators) {
+      while (expressionString.indexOf('$' + operator) > -1) {
+        expressionString = expressionString.replace('$' + operator, operators[operator] + '(');
+      }
+    }
+
     return expressionString;
   }
 
@@ -206,8 +210,8 @@ var waxonUtils = (function() {
    * than 'x' are used, they should be specified in var1 and var2.
    */
   function compareExpressions(expression1, expression2, var1, var2) {
-    var1 = var1 || 'x';
-    var2 = var2 || 'x';
+    var1 = var1 || 'x';
+    var2 = var2 || 'x';
     expression1 = preParseExpression(expression1, [var1]);
     expression2 = preParseExpression(expression2, [var2]);
     expression1 = Parser.parse(expression1);
