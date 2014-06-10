@@ -126,7 +126,7 @@ var waxon = (function () {
     }
     // If a sub property should be set, fetch the parent and set sub property.
     if (subProperty != undefined) {
-      var parent = getGlobalData(storeId) || {};
+      var parent = getGlobalData(storeId) || {};
       parent[subProperty] = data;
       data = parent;
     }
@@ -141,8 +141,8 @@ var waxon = (function () {
   // Adds a new area, with specified CSS-attributes.
   function addArea(name, attributes, label) {
     var app = UiApp.getActiveApplication();
-    var captionPanel = app.createCaptionPanel(label || '').setStyleAttributes({border : 'none', padding : '0px', margin : '0px'});//.setStyleAttributes(attributes || {});
-    var scrollPanel = app.createScrollPanel().setId(name + '-wrapper').setStyleAttributes(attributes || {});
+    var captionPanel = app.createCaptionPanel(label || '').setStyleAttributes({border : 'none', padding : '0px', margin : '0px'});//.setStyleAttributes(attributes || {});
+    var scrollPanel = app.createScrollPanel().setId(name + '-wrapper').setStyleAttributes(attributes || {});
     var container = app.createVerticalPanel().setId(name);
     captionPanel.add(scrollPanel);
     scrollPanel.add(container);
@@ -154,7 +154,7 @@ var waxon = (function () {
   // it will be added as a plain label element.
   function addToArea(area, element, attributes) {
     // Merge the frame's default attributes with any overrides specified by arguments.
-    attributes = attributes || {};
+    attributes = attributes || {};
     for (var i in waxon.frames[waxon.resolveFrame()].attributes) {
       attributes[i] = attributes[i] || waxon.frames[waxon.resolveFrame()].attributes[i];
     }
@@ -205,8 +205,8 @@ var waxon = (function () {
   // stores the stack for persistence between page loads.
   function getQuestionStack() {
     var stack = getUserData('stack');
-    if (stack == null || stack.length < 1 || stack == {}) {
-      stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
+    if (stack == null || stack.length < 1 || stack == {}) {
+      stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
     }
 
     for (var index in stack) {
@@ -245,13 +245,13 @@ var waxon = (function () {
   // Fetches (and if necessary builds) question info for a specified
   // index in the question stack. Index defaults to the first question.
   function getQuestionInfo(index) {
-    index = index || 0;
+    index = index || 0;
     return getQuestionStack()[index];
   }
 
   // Removes the topmost question in the stack, or the specified question.
   function removeQuestion(index) {
-    index = index || 0;
+    index = index || 0;
     var stack = getQuestionStack();
     stack.splice(index, 1);
     setUserData(stack, 'stack');
@@ -260,7 +260,7 @@ var waxon = (function () {
   // Fetches the parameters from a question in the question stack, assuming the
   // parameters are already built. Uses first question if none is specified.
   function readParameters(index) {
-    index = index || 0;
+    index = index || 0;
     var stack = getQuestionStack();
     return stack[index].parameters;
   }
@@ -463,7 +463,6 @@ function waxonFrame(id) {
 }
 
 function checkAnswer(eventInfo) {
-  var start = new Date().getTime();
   var app = UiApp.getActiveApplication();
   var questionInfo = waxon.getQuestionInfo();
   var parameters = questionInfo.parameters;
