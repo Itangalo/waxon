@@ -205,8 +205,12 @@ var waxon = (function () {
   // stores the stack for persistence between page loads.
   function getQuestionStack() {
     var stack = getUserData('stack');
-    if (stack == null || stack.length < 1 || stack == {}) {
+    if (Array.isArray(stack) != true || stack.length < 1) {
       stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
+    }
+    // Some frames may accidentally return a string, not an array.
+    if (typeof stack == 'string') {
+      stack = [stack];
     }
 
     for (var index in stack) {
