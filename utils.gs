@@ -185,7 +185,7 @@ var waxonUtils = (function() {
     // http://stackoverflow.com/questions/20912455/math-expression-parser
     // Cred to Reut Sharabani.
     re.implicit = {
-      expr: /([0-9]+|[a-zπ\\)])(?=[0-9]+|[a-zπ<\\(])/i,
+      expr: /([0-9]+|[a-zπ\\)])(?=[a-zπ<\\(])/i,
       repl : '$1*',
     };
     // When implicit multiplications have been taken care of, we can return 'π' to 'PI'.
