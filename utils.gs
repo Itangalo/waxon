@@ -164,7 +164,7 @@ var waxonUtils = (function() {
       expr : /(\d)[,]+(\d)/,
       repl : '$1.$2',
     };
-    
+
     // Replace function names with tokens. Include opening parenthesis of the function
     // argument, to avoid it being treated as an implicit multiplication.
     for (var i in operators) {
@@ -173,7 +173,7 @@ var waxonUtils = (function() {
         repl : '<' + i + '>',
       };
     }
-    
+
     // Special case: The constant PI is understood by Parser, and should be replaced
     // to avoid treating the letters as an implicit multiplication.
     re.pi = {
