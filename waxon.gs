@@ -186,7 +186,7 @@ var waxon = (function () {
 
   // TODO.
   function resolveFrame() {
-    return 'shortTest';
+    return 'smartPractice';
   }
 
   function addQuestion(question, isNonQuestion) {
@@ -304,7 +304,7 @@ var waxon = (function () {
       waxon.addToArea('answerarea', answerElements[i]);
       handler.addCallbackElement(answerElements[i]);
     }
-    
+
     if (waxon.questions[waxon.getQuestionInfo().id].hideButton != true) {
       waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).setId('answerSubmit'));
     }
@@ -409,11 +409,10 @@ function waxonFrame(id) {
   this.buildQuestionStack = function() {
     // Just pick three random questions.
     var stack = [];
-    var availableQuestions = waxon.questionIds;
-    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
-    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
-    stack.push(availableQuestions[waxonUtils.randomInt(0, availableQuestions.length - 1)]);
-    return stack;
+    for (var i in waxon.questionIds) {
+      stack.push(i);
+    }
+    return waxon.randomSelect(stack);
   };
 
   this.attributes = {
