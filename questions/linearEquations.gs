@@ -29,11 +29,17 @@ linearEquations.generateParameters = function(options) {
   }
   switch (rightExpressionType) {
     case 'x' :
-      right = 'x';
+      // We don't want an equation of the type 'x = x'.
+      if (left == variable) {
+        right = waxonUtils.randomBinomial(-3, 3, variable);
+      }
+      else {
+        right = variable;
+      }
       break;
     case 'a' :
       // We don't want an quation of the type 'x = 4'.
-      if (left == 'x') {
+      if (left == variable) {
         right = waxonUtils.randomBinomial(-3, 3, variable);
       }
       else {
@@ -41,7 +47,7 @@ linearEquations.generateParameters = function(options) {
       }
       break;
     case 'ax' :
-      right = waxonUtils.randomInt(-3, 3, [0, 1]) + 'x';
+      right = waxonUtils.randomInt(-3, 3, [0, 1]) + variable;
       break;
     case 'a()' :
       right = waxonUtils.randomInt(-3, 3, [0, 1]) + '(' + waxonUtils.randomBinomial(-3, 3, variable) + ')';
