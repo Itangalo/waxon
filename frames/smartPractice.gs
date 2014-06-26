@@ -7,6 +7,7 @@ var smartPractice = new waxonFrame('smartPractice');
 
 smartPractice.title = 'Procedurträning';
 smartPractice.limit = 10;
+smartPractice.allowedQuestions = ['negativeMixed', 'orderOfOps', 'fractionsMixed', 'simplifyExpressions', 'linearEquations'];
 
 smartPractice.numberOfCorrect = function(resultArray) {
   var correct = 0;
@@ -25,10 +26,15 @@ smartPractice.practiceNeed = function(questionId) {
   return Math.max(1, this.limit - this.numberOfCorrect(result));
 }
 
+smartPractice.getQuestionList = function() {
+  return this.allowedQuestions || waxon.questionIds;
+}
+
 smartPractice.buildQuestionStack = function() {
+  var questionList = smartPractice.getQuestionList();
   var weights = {};
-  for (var i in waxon.questionIds) {
-    weights[i] = smartPractice.practiceNeed(i);
+  for (var i in questionList) {
+    weights[questionList[i]] = smartPractice.practiceNeed(questionList[i]);
   }
   return [waxonUtils.randomSelect(weights)];
 };
@@ -123,7 +129,7 @@ smartPractice.summary = function() {
   var result, spreadsheet, cellContent, row, numberOfQuestions, columnIndex = {};
   var allResult = waxon.getGlobalData('result');
   if (waxon.getGlobalData('resultSheet') == null) {
-    spreadsheet = SpreadsheetApp.create(this.title || ('waxon-resultat ' + new Date()));
+    spreadsheet = SpreadsheetApp.create((this.title || 'waxon-resultat') + ' ' + new Date());
     waxon.setGlobalData(spreadsheet.getId(), 'resultSheet');
   }
   else {
