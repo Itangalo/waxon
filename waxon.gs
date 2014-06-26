@@ -186,7 +186,7 @@ var waxon = (function () {
 
   // TODO.
   function resolveFrame() {
-    return 'smartPractice';
+    return 'shortTest';
   }
 
   function addQuestion(question, isNonQuestion) {
@@ -239,7 +239,7 @@ var waxon = (function () {
 
     // Set question parameters, if needed.
     if (questionInfo.parameters == undefined) {
-      questionInfo.parameters = waxon.questions[questionInfo.id].generateParameters(questionInfo.options);
+      questionInfo.parameters = waxon.questions[questionInfo.id].generateParameters(questionInfo.options || {});
     }
 
     questionInfo.processed = true;
