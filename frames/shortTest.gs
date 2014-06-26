@@ -6,10 +6,52 @@
 var shortTest = new waxonFrame('shortTest');
 
 shortTest.stack = [
-  'simpleAddition',
+  'negativeMixed',
+  'negativeMixed',
+  'negativeMixed',
+  'negativeMixed',
+  {id :  'orderOfOps',
+   options : {expressionType : ['a±b*c'], positive : true}
+  },
+  {id :  'orderOfOps',
+   options : {expressionType : ['a±b/c'], positive : true}
+  },
   'orderOfOps',
-  'linearEquations',
-  'simpleAddition',
+  'orderOfOps',
+  {id :  'fractionsMixed',
+   options : {operations : ['-'], positive : true}
+  },
+  {id :  'fractionsMixed',
+   options : {operations : ['+']}
+  },
+  {id :  'fractionsMixed',
+   options : {operations : ['*']}
+  },
+  'fractionsMixed',
+  {id :  'simplifyExpressions',
+   options : {expressionType : ['()+b()', 'a()+()']}
+  },
+  {id :  'simplifyExpressions',
+   options : {expressionType : ['()+b()', 'a()+()']}
+  },
+  {id :  'simplifyExpressions',
+   options : {expressionType : ['()+b()', 'a()+()']}
+  },
+  {id :  'simplifyExpressions',
+   options : {expressionType : ['()+b()', 'a()+()']}
+  },
+  {id :  'linearEquations',
+   options : {leftExpressionType : ['()'], rightExpressionType : ['ax', 'a', 'x']}
+  },
+  {id :  'linearEquations',
+   options : {leftExpressionType : ['()'], rightExpressionType : ['ax', 'a', 'x']}
+  },
+  {id :  'linearEquations',
+   options : {leftExpressionType : ['()', 'a()'], rightExpressionType : ['ax', 'a', 'x']}
+  },
+  {id :  'linearEquations',
+   options : {leftExpressionType : ['()', 'a()'], rightExpressionType : ['ax', 'a', 'x']}
+  },
 ];
 
 // Set this to true to allow resetting the test.
@@ -19,7 +61,7 @@ shortTest.title = 'Exempel på diagnos';
 
 shortTest.buildQuestionStack = function() {
   // Make sure that the stack ends with 'noMoreQuestions'.
-  if (this.stack.length == 0 || this.stack[this.stack.length - 1] != 'noMoreQuestions') {
+  if (this.stack.length == 0 || (this.stack[this.stack.length - 1] != 'noMoreQuestions' && this.stack[this.stack.length - 1].id != 'noMoreQuestions')) {
     this.stack.push('noMoreQuestions');
   }
   return shortTest.stack;
@@ -116,6 +158,9 @@ shortTest.summary = function() {
   }
   
   row = this.buildQuestionStack();
+  for (var i in row) {
+    row[i] = row[i].id || row[i];
+  }
   row.pop();
   numberOfQuestions = row.length;
   row.unshift('Antal rätt');
