@@ -47,6 +47,10 @@ var waxonUtils = (function() {
         }
       }
     }
+
+    // If it is not an array and not a string, we assume that we have this
+    // single value to choose from and simply return it.
+    return values;
   }
 
   /**
