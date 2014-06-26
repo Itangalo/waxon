@@ -115,6 +115,7 @@ var waxonUtils = (function() {
   function latex2image(expression, noParse) {
     expression = expression.toString();
     var replacements = {
+      '.' : ',', // Swedish decimal sign
       '*' : ' \\cdot ',
       ',' : '{,}',
     }
