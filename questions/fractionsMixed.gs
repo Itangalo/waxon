@@ -2,14 +2,20 @@ var fractionsMixed = new waxonQuestion('fractionsMixed');
 
 // This parameter generation allows specifying the operation to use. If not
 // specified, it will be randomly chosen from the four standard operations.
-fractionsMixed.generateParameters = function(op) {
-  var operations = ['+', '-', '*', '/'];
-  var a = waxonUtils.randomInt(-10, 10, [0]);
-  var b = waxonUtils.randomInt(1, 10, [a]);
-  var c = waxonUtils.randomInt(-10, 10, [0]);
-  var d = waxonUtils.randomInt(1, 10, [b, c]);
+fractionsMixed.generateParameters = function(options) {
+  var operation = waxonUtils.randomSelect(options.operations || ['+', '-', '*', '/']);
+  var a = options.a || waxonUtils.randomInt(-10, 10, [0]);
+  if (options.positive == true) {
+    a = Math.abs(a);
+  }
+  var b = options.b || waxonUtils.randomInt(1, 10, [a]);
+  var c = options.c || waxonUtils.randomInt(-10, 10, [0]);
+  if (options.positive == true) {
+    c = Math.abs(c);
+  }
+  var d = options.d || waxonUtils.randomInt(1, 10, [b, c]);
   return {
-    operation : operations[op] || operations[waxonUtils.randomInt(0, 3)],
+    operation : operation,
     a : a,
     b : b,
     c : c,
