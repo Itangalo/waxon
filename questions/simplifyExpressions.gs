@@ -7,13 +7,13 @@ var simplifyExpressions = new waxonQuestion('simplifyExpressions');
 simplifyExpressions.title = 'Förenkla algebraiska uttryck';
 
 simplifyExpressions.generateParameters = function(options) {
-  var possibleModes = [
+  var expressionType = waxonUtils.randomSelect(options.expressionType || [
     'a()+b()',
-    'a()+()',
+    'a()+()', // This is the default
     '()+b()'
-  ];
-  var a = waxonUtils.randomInt(-3, 3, [0]);
-  var b = waxonUtils.randomInt(-3, 3, [0]);
+  ]);
+  var a = options.a || waxonUtils.randomInt(-3, 3, [0]);
+  var b = options.b || waxonUtils.randomInt(-3, 3, [0]);
   if (a == 1) {
     a = '';
   }
@@ -27,15 +27,16 @@ simplifyExpressions.generateParameters = function(options) {
     b = '+' + b;
   }
 
-  switch (waxonUtils.randomSelect(possibleModes)) {
+  switch (expressionType) {
     case 'a()+b()' :
       expression = a + '(' + waxonUtils.randomBinomial() + ')' + b + '(' + waxonUtils.randomBinomial() + ')';
       break;
-    case 'a()+()' :
-      expression = a + '(' + waxonUtils.randomBinomial() + ')+' + waxonUtils.randomBinomial();
-      break;
     case '()+b()' :
       expression = waxonUtils.randomBinomial() + b + '(' + waxonUtils.randomBinomial() + ')';
+      break;
+    case 'a()+()' :
+    default :
+      expression = a + '(' + waxonUtils.randomBinomial() + ')+' + waxonUtils.randomBinomial();
       break;
   }
   return {
