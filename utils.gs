@@ -246,44 +246,65 @@ var waxonUtils = (function() {
   }
 
   /**
-   * Compares two algebraic expressions, to see if they are the same.
+   * Compares two mathematic/algebraic expressions, to see if they are the same.
    *
-   * The algorithm only works with one-variable expressions. If other variable names
-   * than 'x' are used, they should be specified in var1 and var2.
+   * Variable names are assumed to be 'x' in both expressions, but other variable names
+   * can be passed in the 'var1' and 'var2' arguments. If more than one variable is used,
+   * variable names should be passed in an array. Different variables may be used for the
+   * two expressions, eg. 'x+y' could be compared to 'a+b'.
+   * Returns 1 if expressions are the same, -1 if not the same, -2 if something is wrong.
    */
   function compareExpressions(expression1, expression2, var1, var2) {
     var1 = var1 || 'x';
-    var2 = var2 || 'x';
-    expression1 = preParseExpression(expression1, [var1]);
-    expression2 = preParseExpression(expression2, [var2]);
-    expression1 = Parser.parse(expression1);
-    expression2 = Parser.parse(expression2);
-    var x, vars1 = {}, vars2 = {};
+    var2 = var2 || var1;
+    if (typeof var1 == 'string') {
+      var1 = [var1];
+    }
+    if (typeof var2 == 'string') {
+      var2 = [var2];
+    }
+    // We should now have two arrays with variable names, and there should be the same
+    // number of variables in them.
+    if (Array.isArray(var1) != true || Array.isArray(var2) != true || var1.length != var2.length) {
+      return -2;
+    }
+    var x, vars1 = {}, vars2 = {}, val1, val2, tries = 0;
 
-    // Run five evaluations of random numbers between -10 and 10, to see if the expressions
+    // Run five evaluations of random numbers between -5 and 5, to see if the expressions
     // yield the same values. (Yes, this is an ugly way of comparing the expressions. But
     // it is cheap and it works for the practical purposes.)
     for (var i = 0; i < 5; i++) {
-      x = waxonUtils.randomInt(-100, 100) / 10;
-      vars1[var1] = x;
-      vars2[var2] = x;
-      // The rounding here is to prevent calculation errors to give false negatives.
-      try {
-        if (Math.round(expression1.evaluate(vars1) * 1000) != Math.round(expression2.evaluate(vars2) * 1000)) {
-          return -1;
-        }
+      for (var v in var1) {
+        x = Math.random() * 10 - 5;
+        vars1[var1[v]] = x;
+        vars2[var2[v]] = x;
       }
-      catch(e) {
-        // If both expressions cannot be parsed, try parsing one of them. If this succeeds,
-        // then the expressions cannot be the same.
-        try {
-          expression1.evaluate(vars1);
+      val1 = this.evaluate(expression1, vars1);
+      val2 = this.evaluate(expression2, vars2);
+
+      // The expressions may be undefined for these variable values. This check allow trying
+      // again, but aborts if we've tried more than ten times. (The expressions might just be
+      // juble, and impossible to evaluate alltogether.)
+      if (val1 == undefined && val2 == undefined) {
+        i--;
+        tries++;
+        if (tries > 10) {
           return -2;
         }
-        catch(e) {
-        }
+        continue;
+      }
+      // If one expression value is undefined, but not the other, they cannot be the same.
+      if (val1 == undefined && val2 != undefined) {
+        return -2;
+      }
+
+      // Finally, we compare the numeric values of the expressions. The rounding here is to
+      // prevent calculation errors to give false negative results.
+      if (Math.round(val1 * 100000 - val2 * 100000) != 0) {
+        return -1;
       }
     }
+    // If we got this far, the expressions are most likely the same.
     return 1;
   }
 
