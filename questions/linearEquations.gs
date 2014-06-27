@@ -66,9 +66,9 @@ linearEquations.generateParameters = function(options) {
   // Check that left side and right side aren't linearly dependent.
   var evals = {};
   evals[variable] = 0;
-  var diff1 = Parser.parse(waxonUtils.preParseExpression(left)).evaluate(evals) - Parser.parse(waxonUtils.preParseExpression(right)).evaluate(evals);
+  var diff1 = waxonUtils.evaluate(left + '-(' + right + ')', evals);
   evals[variable] = 1;
-  var diff2 = Parser.parse(waxonUtils.preParseExpression(left)).evaluate(evals) - Parser.parse(waxonUtils.preParseExpression(right)).evaluate(evals);
+  var diff2 = waxonUtils.evaluate(left + '-(' + right + ')', evals);
   if (diff1 == diff2) {
     return linearEquations.generateParameters(options);
   }
@@ -105,16 +105,25 @@ linearEquations.answerElements = function(parameters) {
 };
 
 linearEquations.evaluateAnswer = function(parameters, input) {
-  var answerValue = Parser.parse(waxonUtils.preParseExpression(input.answer)).evaluate();
+  var answerValue = waxonUtils.evaluate(input.answer);
+  if (answerValue == undefined) {
+    return {
+      code : -2,
+      message : 'Ditt svar kunde inte tolkas. Du måste svara med antingen ett bråktal eller ett exakt decimaltal.'
+    };
+  }
   var evals = {};
   evals[parameters.variable] = answerValue;
-  var leftValue = Parser.parse(waxonUtils.preParseExpression(parameters.left)).evaluate(evals);
-  var rightValue = Parser.parse(waxonUtils.preParseExpression(parameters.right)).evaluate(evals);
+  var diff = waxonUtils.evaluate(parameters.left + '-(' + parameters.right + ')', evals);
 
-  if (leftValue.toFixed(10) == rightValue.toFixed(10)) {
+  // Just in case.
+  if (diff == undefined) {
+    return -1;
+  }
+  if (diff.toFixed(10) == 0) {
     return 1;
   }
-  else if (leftValue.toFixed(2) == rightValue.toFixed(2)) {
+  else if (diff.toFixed(2) == 0) {
     return {
       code : 0,
       message : 'Ditt svar verkar vara avrundat. Svara i bråkform istället!'
