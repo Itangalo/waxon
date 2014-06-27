@@ -147,6 +147,34 @@ var waxonUtils = (function() {
   }
 
   /**
+   * Evaluates an expression, with variable values if supplied.
+   *
+   * The variables argument should contain any variables and their values, for
+   * example '{x : 3, y : 2}'. If evaluation fails, for some reason, 'undefined'
+   * will be returned.
+   */
+  function evaluate(expressionString, variables) {
+    // Make sure we have sane arguments.
+    if (typeof expressionString != 'string') {
+      return;
+    }
+    if (typeof variables != 'object') {
+      variables = {};
+    }
+
+    // Take care of implicit multiplication and Swedish notation in the expression.
+    expressionString = this.preParseExpression(expressionString);
+
+    // Evaluate! Since Parser may throw errors, we need a try statement.
+    try {
+      return Parser.parse(expressionString).evaluate(variables);
+    }
+    catch(e) {
+      return;
+    }
+  }
+
+  /**
    * Parses an expression string, allowing Swedish notation and implicit multiplication.
    */
   function preParseExpression(expressionString) {
@@ -267,6 +295,7 @@ var waxonUtils = (function() {
     gcd : gcd,
     latex2image : latex2image,
     numberOfTerms : numberOfTerms,
+    evaluate : evaluate,
     preParseExpression : preParseExpression,
     compareExpressions : compareExpressions,
   }
