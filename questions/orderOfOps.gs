@@ -84,7 +84,7 @@ orderOfOps.questionElements = function(parameters) {
 orderOfOps.evaluateAnswer = function(parameters, input) {
   // The answer shouldn't have any decimals in it. The replacement is there just in case.
   var answer = parseFloat(input.answer.replace(',', '.'));
-  var correct = Parser.parse(waxonUtils.preParseExpression(parameters.expression)).evaluate();
+  var correct = waxonUtils.evaluate(parameters.expression);
 
   if (answer == correct) {
     return 1;
