@@ -300,7 +300,7 @@ var waxonUtils = (function() {
 
       // Finally, we compare the numeric values of the expressions. The rounding here is to
       // prevent calculation errors to give false negative results.
-      if (Math.round(val1 * 100000 - val2 * 100000) != 0) {
+      if (val1.toFixed(10) != val2.toFixed(10)) {
         return -1;
       }
     }
