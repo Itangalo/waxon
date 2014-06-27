@@ -5,6 +5,10 @@
 // Create a new object, inheriting properties from 'waxonFrame'.
 var shortTest = new waxonFrame('shortTest');
 
+// Set this to true to allow resetting the test.
+shortTest.demoMode = true;
+shortTest.teacherIds = ['teacher@example.com'];
+
 shortTest.stack = [
   'negativeMixed',
   'negativeMixed',
@@ -54,9 +58,6 @@ shortTest.stack = [
   },
 ];
 
-// Set this to true to allow resetting the test.
-shortTest.demoMode = true;
-
 shortTest.title = 'Exempel på diagnos';
 
 shortTest.buildQuestionStack = function() {
@@ -84,12 +85,7 @@ shortTest.drawAreas = function() {
   waxon.addArea('questionarea', attributes);
   waxon.addArea('answerarea', attributes);
 
-  attributes.display = 'none';
-  waxon.addArea('feedbackarea', attributes);
-  waxon.addArea('helparea', attributes);
-  waxon.addArea('debug', attributes);
-  
-  this.displayQuestionNumber();
+  waxon.addArea('result');
 
   if (this.demoMode == true) {
     waxon.addArea('reset');
@@ -97,6 +93,16 @@ shortTest.drawAreas = function() {
     waxon.addToArea('reset', app.createButton('starta om', app.createServerHandler('shortTestReset')));
     waxon.addToArea('reset', '(Knappen finns endast med i demoläge.)', {fontSize : '12px'});
   }
+
+  waxon.addArea('table');
+  attributes.display = 'none';
+  waxon.addArea('feedbackarea', attributes);
+  waxon.addArea('helparea', attributes);
+  waxon.addArea('debug', attributes);
+
+
+  this.displayQuestionNumber();
+
 
   return app;
 }
@@ -110,6 +116,14 @@ shortTest.displayQuestionNumber = function() {
   }
   else {
     waxon.addToArea('infoarea', 'Fråga ' + (result.length) + ' av ' + (this.buildQuestionStack().length - 1), {fontSize : '12px'});
+  }
+
+  // Display a button to show result, if we're in demo mode or a teacher is viewing.
+  if (this.demoMode || this.teacherIds.indexOf(waxon.getUserId()) > -1) {
+    waxon.clearArea('result');
+    var app = UiApp.getActiveApplication();
+    waxon.addToArea('result', app.createButton('sammanställ resultat', app.createServerHandler('shortTestSummary')));
+    waxon.addToArea('result', '(Knappen är endast synlig för lärare, eller i demoläge. I demoläge är elev-ID:n avklippta.)', {fontSize : '12px'});
   }
 }
 
@@ -141,22 +155,24 @@ shortTest.processResponse = function(responseCode, responseMessage) {
   waxon.setGlobalData(result, 'result', waxon.getUserId());
 
   this.displayQuestionNumber();
-
   return app;
+}
+
+// Handler callback for creating a summary. Wrapper.
+function shortTestSummary(eventInfo) {
+  shortTest.summary();
+  return UiApp.getActiveApplication();
 }
 
 // Method that summarizes how things are going for students/users. Stub.
 shortTest.summary = function() {
-  var result, spreadsheet, cellContent, row, numberOfQuestions;
+  var result, cellContent, row, numberOfQuestions;
+  var app = UiApp.getActiveApplication();
   var allResult = waxon.getGlobalData('result');
-  if (waxon.getGlobalData('resultSheet') == null) {
-    spreadsheet = SpreadsheetApp.create(this.title || ('waxon-resultat ' + new Date()));
-    waxon.setGlobalData(spreadsheet.getId(), 'resultSheet');
-  }
-  else {
-    spreadsheet = SpreadsheetApp.openById(waxon.getGlobalData('resultSheet'));
-  }
-  
+  var table = app.createGrid(Object.keys(allResult).length + 1, this.buildQuestionStack().length + 1).setColumnStyleAttribute(1, 'background', '#CCCCCC');
+
+  waxon.clearArea('table');
+
   row = this.buildQuestionStack();
   for (var i in row) {
     row[i] = row[i].id || row[i];
@@ -166,16 +182,35 @@ shortTest.summary = function() {
   row.unshift('Antal rätt');
   row.unshift('Elev');
   cellContent = [row];
-  
+
   for (var user in allResult) {
-    while (allResult[user].length != numberOfQuestions + 1) {
-      allResult[user].push('-');
-    }
     row = allResult[user];
-    row.unshift(user);
+    // If we are in demo mode, only record the first four letters of the user ID.
+    if (this.demoMode) {
+      row.unshift(user.substring(0, 4) + '…');
+    }
+    else {
+      row.unshift(user);
+    }
     cellContent.push(row);
   }
-  spreadsheet.getActiveSheet().getRange(1, 1, cellContent.length, cellContent[0].length).setValues(cellContent);
+
+  for (var i in cellContent) {
+    if (i == '0') {
+      table.setRowStyleAttribute(parseInt(i), 'background', 'yellow');
+    }
+    else if (parseInt(i) % 9 == 0) {
+      table.setRowStyleAttribute(parseInt(i), 'background', '#AAAAAA');
+    }
+    else if (parseInt(i) % 3 == 0) {
+      table.setRowStyleAttribute(parseInt(i), 'background', '#DDDDDD');
+    }
+    for (var j in cellContent[i]) {
+      table.setText(parseInt(i), parseInt(j), cellContent[i][j]);
+    }
+  }
+  waxon.addToArea('table', table);
+  return app;
 }
 
 // Starts over the test.
