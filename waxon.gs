@@ -2,6 +2,12 @@
  * @file: Main module and functions for the Waxon framework.
  */
 
+/**
+ * This project is licensed under GNU general public license. Feel free to
+ * use, study, share and improve. See https://github.com/Itangalo/waxon/ for
+ * source code, comments on how to set up the script, and license details.
+ */
+
 function doGet() {
   var app = UiApp.createApplication();
 
