@@ -54,6 +54,10 @@ simplifyExpressions.questionElements = function(parameters) {
   }
 };
 
+simplifyExpressions.questionToString = function(parameters) {
+  return parameters.expression;
+}
+
 simplifyExpressions.evaluateAnswer = function(parameters, input) {
   var result = waxonUtils.compareExpressions(parameters.expression, input.answer);
 

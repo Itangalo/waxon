@@ -28,6 +28,7 @@ googleSheet.generateParameters = function(options) {
 
   return {
     row : row,
+    raw : this.getSheet().getRange(row, this.questionColumn).getValue();
   };
 };
 
@@ -35,7 +36,7 @@ googleSheet.questionElements = function(parameters) {
   var app = UiApp.getActiveApplication();
   if (this.allowLaTeX == true) {
     var label = app.createHorizontalPanel();
-    var pieces = googleSheet.getSheet().getRange(parameters.row, googleSheet.questionColumn).getValue().split('$');
+    var pieces = parameters.raw.split('$');
     var LaTeX = false;
     for (var i in pieces) {
       if (LaTeX == false) {
@@ -59,6 +60,10 @@ googleSheet.questionElements = function(parameters) {
     label : label,
   }
 };
+
+googleSheet.questionToString = function(parameters) {
+  return parameters.raw;
+}
 
 googleSheet.evaluateAnswer = function(parameters, input) {
   var correctAnswer = googleSheet.getSheet().getRange(parameters.row, googleSheet.answerColumn).getValue().toString();

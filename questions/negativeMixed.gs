@@ -49,6 +49,10 @@ negativeMixed.questionElements = function(parameters) {
   }
 };
 
+negativeMixed.questionToString = function(parameters) {
+  return parameters.expression;
+}
+
 negativeMixed.evaluateAnswer = function(parameters, input) {
   // The answer shouldn't have any decimals in it. The replacement is there just in case.
   var answer = parseFloat(input.answer.replace(',', '.'));
