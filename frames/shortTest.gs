@@ -199,26 +199,39 @@ shortTest.summary = function() {
     cellContent.push(row);
   }
 
+  // Format the cell content
   for (var i in cellContent) {
-    if (i == '0') {
-      table.setRowStyleAttribute(parseInt(i), 'background', 'yellow');
-    }
-    else if (parseInt(i) % 9 == 0) {
-      table.setRowStyleAttribute(parseInt(i), 'background', '#AAAAAA');
-    }
-    else if (parseInt(i) % 3 == 0) {
-      table.setRowStyleAttribute(parseInt(i), 'background', '#DDDDDD');
-    }
-
     for (var j in cellContent[i]) {
-      if (cellContent[i][j].result != undefined) {
-        // @TODO: Find a way to add a hover popup without having to add a link.
-        table.setWidget(parseInt(i), parseInt(j), app.createAnchor(cellContent[i][j].result, false, '').setTitle('Fråga: ' + cellContent[i][j].questionString + '\r\nSvar: ' + cellContent[i][j].answerString));
-      }
-      else {
-        table.setText(parseInt(i), parseInt(j), cellContent[i][j]);
+      if (parseInt(i) > 0 && parseInt(j) > 1) {
+        // This condition is to be able to parse old result data.
+        if (typeof cellContent[i][j] == 'string' || typeof cellContent[i][j] == 'number') {
+          cellContent[i][j] = {content : cellContent[i][j]};
+        }
+        else {
+          cellContent[i][j].content = cellContent[i][j].result;
+          cellContent[i][j].popup = 'Fråga: ' + cellContent[i][j].questionString + '\r\nSvar: ' + cellContent[i][j].answerString;
+        }
+        // Set redish or greenish color depending on result.
+        if (cellContent[i][j].content > 0) {
+          cellContent[i][j].attributes = {background : '#88FF88'};
+        }
+        if (cellContent[i][j].content < 0) {
+          cellContent[i][j].attributes = {background : '#FF8888'};
+        }
       }
     }
+  }
+
+  // Build the table
+  var table = waxonUtils.createTable(cellContent);
+
+  // Set some background colors, for readability
+  table.setRowStyleAttribute(0, 'background', 'yellow');
+  for (var i = 4; i < cellContent.length; i = i + 4) {
+    table.setRowStyleAttribute(i, 'background', '#DDDDDD');
+  }
+  for (var j = 5; j < cellContent[0].length; j = j + 4) {
+    table.setColumnStyleAttribute(j, 'background', '#DDDDDD');
   }
   waxon.addToArea('table', table);
   return app;
