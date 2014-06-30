@@ -162,6 +162,15 @@ var waxonUtils = (function() {
       variables = {};
     }
 
+    // Make sure all variables (and functions) are lower-case.
+    expressionString = expressionString.toLowerCase();
+    for (var v in variables) {
+      if (v != v.toLowerCase()) {
+        variables[v.toLowerCase()] = variables[v];
+        delete variables[v];
+      }
+    }
+
     // Take care of implicit multiplication and Swedish notation in the expression.
     expressionString = this.preParseExpression(expressionString);
 
@@ -294,7 +303,7 @@ var waxonUtils = (function() {
         continue;
       }
       // If one expression value is undefined, but not the other, they cannot be the same.
-      if (val1 == undefined && val2 != undefined) {
+      if ((val1 == undefined && val2 != undefined) || (val1 != undefined && val2 == undefined)) {
         return -2;
       }
 
