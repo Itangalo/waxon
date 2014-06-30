@@ -357,8 +357,17 @@ var waxon = (function () {
 
 /**
  * Class-like function for building waxon questions.
+ *
+ * @param id
+ *   A string with the ID of the question being created.
+ * @param isNonQuestion
+ *   Set to true if the question type isn't really a question, and shouldn't for example
+ *   be available in a selection of random questions.
+ * @param parent
+ *   Any question type to inherit properties from. Using this is a quick way of making
+ *   tweaks to already existing questions.
  */
-function waxonQuestion(id, isNonQuestion) {
+function waxonQuestion(id, isNonQuestion, parent) {
   this.id = id;
   waxon.addQuestion(this, isNonQuestion);
 
@@ -387,6 +396,15 @@ function waxonQuestion(id, isNonQuestion) {
     }
   };
 
+  // Represents the question as a plain-text string.
+  this.questionToString = function(parameters) {
+    var question = [];
+    for (var i in parameters) {
+      question.push(i + ': ' + parameters[i]);
+    }
+    return question.join(', ');
+  }
+
   // Creates an object with UI elements to submit answer to the question.
   this.answerElements = function(parameters) {
     var app = UiApp.getActiveApplication();
@@ -397,6 +415,11 @@ function waxonQuestion(id, isNonQuestion) {
       answer : answer,
     };
   };
+
+  // Represents the question as a plain-text string.
+  this.answerToString = function(input) {
+    return input.answer;
+  }
 
   // Evaluates the submitted answer. 'input' contains the full input from the handler.
   this.evaluateAnswer = function(parameters, input) {
@@ -409,6 +432,16 @@ function waxonQuestion(id, isNonQuestion) {
   // Creates an object with UI elements with help: video links, further instruciton, etc.
   this.helpElements = function() {
     return {};
+  }
+
+  // Sets any properties that should be inherited from the parent question type.
+  if (parent != undefined) {
+    for (var i in parent) {
+      if (i != 'id') {
+        this[i] = parent[i];
+        Logger.log(i);
+      }
+    }
   }
 };
 
@@ -450,7 +483,7 @@ function waxonFrame(id) {
     return app;
   }
 
-  this.processResponse = function(responseCode, responseMessage) {
+  this.processResponse = function(responseCode, responseMessage, questionString, answerString) {
     var app = UiApp.getActiveApplication();
 
     // Set default response messages for the different response codes.
@@ -478,8 +511,10 @@ function checkAnswer(eventInfo) {
   var questionId = questionInfo.id;
 
   var response = waxon.cleanupResponse(waxon.questions[questionId].evaluateAnswer(parameters, eventInfo.parameter));
+  var questionString = waxon.questions[questionId].questionToString(parameters);
+  var answerString = waxon.questions[questionId].answerToString(eventInfo.parameter);
 
-  waxon.frames[waxon.resolveFrame()].processResponse(response.code, response.message);
+  waxon.frames[waxon.resolveFrame()].processResponse(response.code, response.message, questionString, answerString);
   questionInfo = waxon.getQuestionInfo();
   waxon.buildQuestion(questionInfo);
   return app;
