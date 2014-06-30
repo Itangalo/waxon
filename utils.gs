@@ -308,6 +308,33 @@ var waxonUtils = (function() {
     return 1;
   }
 
+  /**
+   * Creates a formatted table using data from the content array.
+   *
+   * The content array can either just hold cell content, or an object with these keys:
+   *   content[row][column].content: The content to be printed
+   *   content[row][column].popup: Any text to show on hover.
+   *   content[row][column].attributes: Any attributes that should be added to the cell.
+   */
+  function createTable(content) {
+    var app = UiApp.getActiveApplication();
+    if (!Array.isArray(content) || !Array.isArray(content[0])) {
+      return app.createLabel('(malformatted table)');
+    }
+    var table = app.createGrid(content.length, content[0].length);
+    for (var row in content) {
+      for (var column in content[row]) {
+        if (content[row][column].content == undefined) {
+          table.setText(parseInt(row), parseInt(column), content[row][column]);
+        }
+        else {
+          table.setWidget(parseInt(row), parseInt(column), app.createLabel(content[row][column].content).setTitle(content[row][column].popup || '').setStyleAttributes(content[row][column].attributes || {}));
+        }
+      }
+    }
+    return table;
+  }
+
   // The methods in waxonUtils.
   return {
     randomInt : randomInt,
@@ -319,5 +346,6 @@ var waxonUtils = (function() {
     evaluate : evaluate,
     preParseExpression : preParseExpression,
     compareExpressions : compareExpressions,
+    createTable : createTable,
   }
 }) ();
