@@ -127,7 +127,7 @@ shortTest.displayQuestionNumber = function() {
   }
 }
 
-shortTest.processResponse = function(responseCode, responseMessage) {
+shortTest.processResponse = function(responseCode, responseMessage, questionString, answerString) {
   var app = UiApp.getActiveApplication();
 
   var question = waxon.getQuestionInfo();
@@ -143,7 +143,11 @@ shortTest.processResponse = function(responseCode, responseMessage) {
   }
 
   // Add the result of this question, and increase the number of correct answers if relevant.
-  result.push(responseCode);
+  result.push({
+    result : responseCode,
+    questionString : questionString,
+    answerString : answerString,
+  });
   if (responseCode > 0) {
     result[0]++;
   }
@@ -205,8 +209,15 @@ shortTest.summary = function() {
     else if (parseInt(i) % 3 == 0) {
       table.setRowStyleAttribute(parseInt(i), 'background', '#DDDDDD');
     }
+
     for (var j in cellContent[i]) {
-      table.setText(parseInt(i), parseInt(j), cellContent[i][j]);
+      if (cellContent[i][j].result != undefined) {
+        // @TODO: Find a way to add a hover popup without having to add a link.
+        table.setWidget(parseInt(i), parseInt(j), app.createAnchor(cellContent[i][j].result, false, '').setTitle('Fråga: ' + cellContent[i][j].questionString + '\r\nSvar: ' + cellContent[i][j].answerString));
+      }
+      else {
+        table.setText(parseInt(i), parseInt(j), cellContent[i][j]);
+      }
     }
   }
   waxon.addToArea('table', table);
