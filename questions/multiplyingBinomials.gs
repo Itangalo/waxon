@@ -85,6 +85,10 @@ multiplyingBinomials.questionElements = function(parameters) {
   }
 };
 
+multiplyingBinomials.questionToString = function(parameters) {
+  return parameters.expression;
+}
+
 multiplyingBinomials.evaluateAnswer = function(parameters, input) {
   var result = waxonUtils.compareExpressions(parameters.expression, input.answer);
 
