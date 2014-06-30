@@ -28,7 +28,7 @@ googleSheet.generateParameters = function(options) {
 
   return {
     row : row,
-    raw : this.getSheet().getRange(row, this.questionColumn).getValue();
+    raw : this.getSheet().getRange(row, this.questionColumn).getValue(),
   };
 };
 
