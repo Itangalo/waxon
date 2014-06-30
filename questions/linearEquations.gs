@@ -92,6 +92,10 @@ linearEquations.questionElements = function(parameters) {
   }
 };
 
+linearEquations.questionToString = function(parameters) {
+  return parameters.expression;
+}
+
 linearEquations.answerElements = function(parameters) {
   var app = UiApp.getActiveApplication();
   var label = app.createLabel(parameters.variable + ' =');
