@@ -37,6 +37,10 @@ fractionsMixed.questionElements = function(parameters) {
   }
 };
 
+fractionsMixed.questionToString = function(parameters) {
+  return parameters.a + '/' + parameters.b + ' ' + parameters.operation + ' ' + parameters.c + '/' + parameters.d;
+}
+
 fractionsMixed.evaluateAnswer = function(parameters, input) {
   var denominator, nominator, gcd, response, a, b, c, d, operation;
   a = parameters.a;
