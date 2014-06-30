@@ -5,6 +5,8 @@
 // Create a new object, inheriting properties from 'waxonQuestion'.
 var simpleAddition = new waxonQuestion('simpleAddition');
 
+simpleAddition.title = 'Enkel addition';
+
 // There are a few methods that you probably want to override.
 // First one is 'generateParameters', creating random parameters to build your
 // question on.
@@ -34,9 +36,19 @@ simpleAddition.questionElements = function(parameters) {
   }
 };
 
+// This method should return the question represented by a string. It could be
+// used for saving questions and answers in a spreadsheet, or so.
+simpleAddition.questionToString = function(parameters) {
+  return parameters.a + '+' + parameters.b;
+}
+
 // There is a method called 'answerElements' that you may override. If you don't,
 // you will get a simple textbox with the name 'answer'. The return of answerElements
 // is on the same form as questionElements.
+
+// There is another method called 'answerToString' that you should override if you
+// use other answer elements than the default. The method should represent the answer
+// as a plain text string.
 
 // One method you basically must override, though, is evaluateAnswer. This takes
 // care of evaluating whatever input the user has provided, and gives thumbs up
