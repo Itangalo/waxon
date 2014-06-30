@@ -439,7 +439,6 @@ function waxonQuestion(id, isNonQuestion, parent) {
     for (var i in parent) {
       if (i != 'id') {
         this[i] = parent[i];
-        Logger.log(i);
       }
     }
   }
