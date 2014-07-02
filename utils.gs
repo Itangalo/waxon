@@ -330,7 +330,11 @@ var waxonUtils = (function() {
     if (!Array.isArray(content) || !Array.isArray(content[0])) {
       return app.createLabel('(malformatted table)');
     }
-    var table = app.createGrid(content.length, content[0].length);
+    var max = 0;
+    for (var i in content) {
+      max = Math.max(max, content[i].length);
+    }
+    var table = app.createGrid(content.length, max);
     for (var row in content) {
       for (var column in content[row]) {
         if (content[row][column].content == undefined) {
