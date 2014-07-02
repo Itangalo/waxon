@@ -5,6 +5,10 @@
 // Create a new object, inheriting properties from 'waxonFrame'.
 var smartPractice = new waxonFrame('smartPractice');
 
+// Set this to true to allow resetting the test.
+smartPractice.demoMode = true;
+smartPractice.teacherIds = ['teacher@example.com'];
+
 smartPractice.title = 'Procedurträning';
 smartPractice.limit = 10;
 smartPractice.required = 7;
@@ -64,6 +68,15 @@ smartPractice.drawAreas = function() {
   waxon.addArea('feedbackarea', attributes, 'feedback');
   waxon.addArea('helparea', attributes, 'hjälp/instruktioner');
   waxon.addArea('resultarea', attributes, 'resultat för 10 senaste svaren i varje kategori');
+
+  // Display a button to show result, if we're in demo mode or a teacher is viewing.
+  if (this.demoMode || this.teacherIds.indexOf(waxon.getUserId()) > -1) {
+    waxon.addArea('buttons');
+    waxon.addArea('summaryarea');
+    var app = UiApp.getActiveApplication();
+    waxon.addToArea('buttons', app.createButton('sammanställ resultat', app.createServerHandler('smartPracticeSummary')));
+    waxon.addToArea('buttons', '(Knappen är endast synlig för lärare, eller i demoläge. I demoläge är elev-ID:n avklippta.)', {fontSize : '12px'});
+  }
 
   attributes.display = 'none';
   waxon.addArea('debug', attributes);
@@ -155,36 +168,54 @@ smartPractice.showResult = function() {
     cellContent.push(row);
   }
   var table = waxonUtils.createTable(cellContent);
-  waxon.addToArea('resultarea', table, {fontSize : '12px'});
+  if (table != '(malformatted table)') {
+    waxon.addToArea('resultarea', table, {fontSize : '12px'});
+  }
+}
+
+// Handler callback for creating a summary. Wrapper.
+function smartPracticeSummary(eventInfo) {
+  smartPractice.summary();
+  return UiApp.getActiveApplication();
 }
 
 // Method that summarizes how things are going for students/users. Stub.
 smartPractice.summary = function() {
-  var result, spreadsheet, cellContent, row, numberOfQuestions, columnIndex = {};
+  var result, cellContent = [], row, numberOfColumns, columnIndex = {};
   var allResult = waxon.getGlobalData('result');
-  if (waxon.getGlobalData('resultSheet') == null) {
-    spreadsheet = SpreadsheetApp.create((this.title || 'waxon-resultat') + ' ' + new Date());
-    waxon.setGlobalData(spreadsheet.getId(), 'resultSheet');
-  }
-  else {
-    spreadsheet = SpreadsheetApp.openById(waxon.getGlobalData('resultSheet'));
-  }
-
   row = ['elev'];
-  for (var i in waxon.questionIds) {
-    columnIndex[i] = row.length;
-    row.push(waxon.questions[i].title || i);
+  for (var i in this.allowedQuestions) {
+    row.push(waxon.questions[this.allowedQuestions[i]].title || this.allowedQuestions[i]);
   }
-  numberOfQuestions = row.length - 1;
-  cellContent = [row];
+  cellContent.push(row);
+  numberOfColumns = row.length;
   for (var student in allResult) {
-    row = Array(numberOfQuestions + 1);
-    row[0] = student;
-    for (var i in allResult[student]) {
-      row[columnIndex[i]] = this.numberOfCorrect(allResult[student][i]);
+    row = Array(numberOfColumns);
+    if (this.demoMode) {
+      row[0] = student.substring(0, 4);
+    }
+    else {
+      row[0] = student;
+    }
+    for (var i in this.allowedQuestions) {
+      result = allResult[student][this.allowedQuestions[i]];
+      if (result != undefined) {
+        row[parseInt(i) + 1] = {
+          content : this.numberOfCorrect(result),
+          attributes : {background : (this.numberOfCorrect(result) >= this.required) ? '#88FF88' : 'yellow'},
+        };
+      }
+      else {
+        row[parseInt(i) + 1] = '-';
+      }
     }
     cellContent.push(row);
   }
 
-  spreadsheet.getActiveSheet().getRange(1, 1, cellContent.length, cellContent[0].length).setValues(cellContent);
+  var table = waxonUtils.createTable(cellContent);
+  var table = waxonUtils.createTable(cellContent);
+  waxon.clearArea('summaryarea');
+  if (table != '(malformatted table)') {
+    waxon.addToArea('summaryarea', table, {fontSize : '12px'});
+  }
 }
