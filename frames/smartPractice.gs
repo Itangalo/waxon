@@ -7,12 +7,19 @@ var smartPractice = new waxonFrame('smartPractice');
 
 smartPractice.title = 'Procedurträning';
 smartPractice.limit = 10;
-smartPractice.allowedQuestions = ['negativeMixed', 'orderOfOps', 'fractionsMixed', 'simplifyExpressions', 'linearEquations'];
+smartPractice.required = 7;
+smartPractice.allowedQuestions = [
+  'negativeMixed',
+  'orderOfOps',
+  'fractionsMixed',
+  'simplifyExpressions',
+  'linearEquations'
+];
 
 smartPractice.numberOfCorrect = function(resultArray) {
   var correct = 0;
   for (var i in resultArray) {
-    if (resultArray[i] > 0) {
+    if (resultArray[i].content > 0 || resultArray[i] > 0) {
       correct++;
     }
   }
@@ -73,7 +80,7 @@ smartPractice.displayQuestionInfo = function() {
   waxon.addToArea('infoarea', 'Frågetyp: ' + (waxon.questions[waxon.getQuestionInfo().id].title || waxon.getQuestionInfo().id), {fontSize : '12px'});
 }
 
-smartPractice.processResponse = function(responseCode, responseMessage) {
+smartPractice.processResponse = function(responseCode, responseMessage, questionString, answerString) {
   var app = UiApp.getActiveApplication();
 
   waxon.clearArea('feedbackarea');
@@ -83,14 +90,28 @@ smartPractice.processResponse = function(responseCode, responseMessage) {
     result[question.id] = [];
   }
 
-  result[question.id].push(responseCode);
+  var color = 'white';
+  if (responseCode > 0) {
+    color = '#88FF88';
+  }
+  else if (responseCode < 0) {
+    color = '#FF8888';
+  }
+  else if (responseCode == 0) {
+    color = 'yellow';
+  }
+  result[question.id].push(
+    {content : responseCode,
+     popup : 'Fråga: ' + questionString + '\r\nSvar: ' + answerString,
+     attributes : {background : color},
+    });
   while (result[question.id].length > this.limit) {
     result[question.id].shift();
   }
 
   // Process responses. Only give new question on correct answer.
   if (responseCode < -1) {
-    waxon.addToArea('feedbackarea', 'Ditt svar går inte att tolka eller verkar jättefel.');
+    waxon.addToArea('feedbackarea', 'Ditt svar gick inte att tolka, eller innehåller någon orimlighet.');
   }
   else if (responseCode == -1) {
     waxon.addToArea('feedbackarea', 'Fel. Sorry.');
@@ -119,9 +140,22 @@ smartPractice.processResponse = function(responseCode, responseMessage) {
 smartPractice.showResult = function() {
   waxon.clearArea('resultarea');
   var result = waxon.getUserData('result');
+  var cellContent = [];
+  var row;
   for (var i in result) {
-    waxon.addToArea('resultarea', '* ' + (waxon.questions[i].title || i) + ': ' + (this.numberOfCorrect(result[i])) + ' av ' + result[i].length, {fontSize : '12px'});
+    row = result[i].content || result[i];
+    row.unshift({
+      content : waxon.questions[i].title || i,
+      attributes : {background : (this.numberOfCorrect(result[i]) >= this.required) ? '#88FF88' : 'yellow'},
+    });
+    row.unshift({
+      content : this.numberOfCorrect(result[i]),
+      attributes : {background : (this.numberOfCorrect(result[i]) >= this.required) ? '#88FF88' : 'yellow'},
+    });
+    cellContent.push(row);
   }
+  var table = waxonUtils.createTable(cellContent);
+  waxon.addToArea('resultarea', table, {fontSize : '12px'});
 }
 
 // Method that summarizes how things are going for students/users. Stub.
