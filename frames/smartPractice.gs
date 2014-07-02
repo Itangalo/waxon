@@ -78,11 +78,16 @@ smartPractice.drawAreas = function() {
     waxon.addToArea('buttons', '(Knappen är endast synlig för lärare, eller i demoläge. I demoläge är elev-ID:n avklippta.)', {fontSize : '12px'});
   }
 
+  if (this.demoMode) {
+    waxonUtils.displayDemoInformation(attributes);
+  }
+
   attributes.display = 'none';
   waxon.addArea('debug', attributes);
 
   this.displayQuestionInfo();
   smartPractice.showResult();
+
   return app;
 }
 
