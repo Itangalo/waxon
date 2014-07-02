@@ -95,6 +95,11 @@ shortTest.drawAreas = function() {
   }
 
   waxon.addArea('table');
+
+  if (this.demoMode) {
+    waxonUtils.displayDemoInformation(attributes);
+  }
+
   attributes.display = 'none';
   waxon.addArea('feedbackarea', attributes);
   waxon.addArea('helparea', attributes);
