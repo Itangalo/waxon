@@ -3,6 +3,22 @@
  */
 var waxonUtils = (function() {
   /**
+   * Displays information useful in the waxon demo pages.
+   */
+  function displayDemoInformation(attributes) {
+    waxon.addArea('demoinfo', attributes);
+    waxon.addToArea('demoinfo', 'Om waxon');
+    waxon.addToArea('demoinfo', 'Det här är en demosida för projektet "waxon" – ett verktyg för att förenkla träning och bedömning av hur elever klarar av standarduppgifter.', {fontSize : '12px'});
+    waxon.addToArea('demoinfo', 'Det finns två demosidor för waxon:', {fontSize : '12px'});
+    waxon.addToArea('demoinfo', UiApp.getActiveApplication().createAnchor('http://tinyurl.com/waxon-test: En diagnos med 20 utvalda frågetyper', 'http://tinyurl.com/waxon-test'), {fontSize : '12px'});
+    waxon.addToArea('demoinfo', UiApp.getActiveApplication().createAnchor('http://tinyurl.com/waxon-practice: Träning på obegränsat många frågor, där de frågetyper man har svårast för dyker upp oftare', 'http://tinyurl.com/waxon-practice'), {fontSize : '12px'});
+    waxon.addToArea('demoinfo', 'För närvarande (version ' + waxon.versionNumber + ') finns det framförallt mattefrågor avsedda för hoppet mellan grundskola och gymnasiet, men det finns till exempel också en frågetyp där frågor och svar läses från ett kalkylblad och bestäms helt fritt.', {fontSize : '12px'});
+    waxon.addToArea('demoinfo', 'Den som kan programmera JavaScript kan skriva plugins som ger nya typer av frågor, och nya sätt att använda frågorna. Det går att nå källkoden för waxon, inklusive kodexempel, på https://github.com/Itangalo/waxon.', {fontSize : '12px'});
+    waxon.addToArea('demoinfo', 'Om du är intresserad av att veta mer om waxon, eller vill ha hjälp att sätta upp waxon-sidor för dina elever, kan du höra av dig till johan.falk@rudbeck.se.', {fontSize : '12px'});
+    waxon.addToArea('demoinfo', 'Projektet är under utveckling. Feedback är välkommen.', {fontSize : '12px', color : 'red'});
+  }
+
+  /**
    * Returns a random integer between min and max (inclusive).
    *
    * Optional array 'disallowed' may contain values that may not be used.
@@ -350,6 +366,7 @@ var waxonUtils = (function() {
 
   // The methods in waxonUtils.
   return {
+    displayDemoInformation : displayDemoInformation,
     randomInt : randomInt,
     randomSelect : randomSelect,
     randomBinomial : randomBinomial,
