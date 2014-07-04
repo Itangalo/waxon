@@ -166,10 +166,11 @@ var waxonUtils = (function() {
    * Evaluates an expression, with variable values if supplied.
    *
    * The variables argument should contain any variables and their values, for
-   * example '{x : 3, y : 2}'. If evaluation fails, for some reason, 'undefined'
-   * will be returned.
+   * example '{x : 3, y : 2}'. allowedOperators may be used to only allow selected
+   * operators and functions. These should be passed in an array. If evaluation
+   * fails, for any reason, 'undefined' will be returned.
    */
-  function evaluate(expressionString, variables) {
+  function evaluate(expressionString, variables, allowedOperators) {
     // Make sure we have sane arguments.
     if (typeof expressionString != 'string') {
       return;
@@ -192,7 +193,29 @@ var waxonUtils = (function() {
 
     // Evaluate! Since Parser may throw errors, we need a try statement.
     try {
-      return Parser.parse(expressionString).evaluate(variables);
+      // Special handling if we should restrict allowed operators.
+      if (Array.isArray(allowedOperators)) {
+        var expr = Parser.parse(expressionString);
+        // Manipulate ops1, ops2 and functions of the expression object.
+        for (var op in {ops1 : 'ops1', ops2 : 'ops2', functions : 'functions'}) {
+          for (var i in expr[op]) {
+            // Never remove the negative sign as operator.
+            if (op == 'ops1' && i == '-') {
+              continue;
+            }
+            if (allowedOperators.indexOf(i) < 0) {
+              // We cannot delete the function, since it not a property. Instead we
+              // set it to something awkward, which will fail evaluation if the
+              // function is used.
+              expr[op][i] = undefined;
+            }
+          }
+        }
+        return expr.evaluate(variables);
+      }
+      else {
+        return Parser.parse(expressionString).evaluate(variables);
+      }
     }
     catch(e) {
       return;
