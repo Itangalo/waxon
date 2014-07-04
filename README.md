@@ -16,7 +16,8 @@ waxon by writing small plugins. There are two types of plugins:
 
 * Question plugins: Each question type is provided as a separate plugin. This
   should allow adding more questions easily. See question/simpleAddition.gs for
-  a well-commented example.
+  a well-commented example, and linearEquationsTweak.gs for an example of how to
+  base new question plugins on existing ones.
 * Frame plugins: You practice the questions within 'frames', which as also
   provided as plugins. One frame could be 'I want to practice a selected
   exercise type infinitely', while another frame could be 'A test with 4
