@@ -43,8 +43,7 @@ fractionsMixed.questionToString = function(parameters) {
 }
 
 fractionsMixed.evaluateAnswer = function(parameters, input) {
-  var response, correctAnswer, n, d;
-  correctAnswer = waxonUtils.evaluate(parameters.expression);
+  var response, n, d;
 
   // Parse the answer to get nominator and denominator.
   answer = input.answer.split('/');
@@ -81,7 +80,7 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
       message : 'Ditt svar är inte ett bråktal.',
     }
   }
-  if (correctAnswer != waxonUtils.evaluate(input.answer, undefined, ['/'])) {
+  if (waxonUtils.compareExpressions(parameters.expression, input.answer) == false) {
     return {
       code : -1,
       message : 'Svaret stämmer inte, tyvärr.',
