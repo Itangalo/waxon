@@ -20,6 +20,7 @@ fractionsMixed.generateParameters = function(options) {
     b : b,
     c : c,
     d : d,
+    expression : '(' + a + '/' + b + ')' + operation + '(' + c + '/' + d + ')',
   };
 }
 
@@ -38,47 +39,12 @@ fractionsMixed.questionElements = function(parameters) {
 };
 
 fractionsMixed.questionToString = function(parameters) {
-  return parameters.a + '/' + parameters.b + ' ' + parameters.operation + ' ' + parameters.c + '/' + parameters.d;
+  return parameters.expression;
 }
 
 fractionsMixed.evaluateAnswer = function(parameters, input) {
-  var denominator, nominator, gcd, response, a, b, c, d, operation;
-  a = parameters.a;
-  b = parameters.b;
-  c = parameters.c;
-  d = parameters.d;
-  operation = parameters.operation;
-
-  // If we use subtraction, change variable and change operator.
-  if (operation == '-') {
-    c = -c;
-    operation = '+';
-  }
-  // If we use division, swap variables and change operator.
-  if (operation == '/') {
-    c = d + (d=c, 0);
-    operation = '*';
-  }
-
-  // Build the correct answer.
-  if (operation == '+') {
-    denominator = b * d;
-    nominator = a * d + c * b;
-    gcd = waxonUtils.gcd(nominator, denominator);
-    denominator = denominator / gcd;
-    nominator = nominator / gcd;
-  }
-  else if (operation == '*') {
-    denominator = b * d;
-    nominator = a * c;
-    gcd = waxonUtils.gcd(nominator, denominator);
-    denominator = denominator / gcd;
-    nominator = nominator / gcd;
-  }
-  if (denominator < 0) {
-    nominator = -nominator;
-    denominator = -denominator;
-  }
+  var response, correctAnswer, n, d;
+  correctAnswer = waxonUtils.evaluate(parameters.expression);
 
   // Parse the answer to get nominator and denominator.
   answer = input.answer.split('/');
@@ -87,31 +53,47 @@ fractionsMixed.evaluateAnswer = function(parameters, input) {
   }
   else if (answer.length > 2) {
     return {
-      result : -2,
+      code : -2,
       message : 'Ditt svar är inte ett bråktal.',
     }
   }
-  answer.n = parseInt(answer[0]);
-  answer.d = parseInt(answer[1]);
+  n = parseFloat(answer[0]);
+  d = parseFloat(answer[1]);
 
-  if (answer.n == nominator && answer.d == denominator) {
-    response = 1;
+  if (n != n.toFixed(0) || d != d.toFixed(0)) {
+    return {
+      code : -2,
+      message : 'Täljare och nämnare måste vara heltal i förkortade bråktal.',
+    }
   }
-  else if (waxonUtils.gcd(answer.d, answer.n) == -1) {
-    response = {
-      code : 0,
-      message : 'Ditt svar är korrekt, men du bör undvika negativa tal i nämnaren.',
-    };
+
+  if (d < 0) {
+    return {
+      code : -2,
+      message : 'Nämnaren måste vara positiv i förkortade bråktal.',
+    }
   }
-  else if ((answer.n / answer.d) == (nominator / denominator)) {
-    response = {
+
+  if (waxonUtils.evaluate(input.answer, undefined, ['/']) == undefined) {
+    Logger.log(input.answer);
+    return {
+      code : -2,
+      message : 'Ditt svar är inte ett bråktal.',
+    }
+  }
+  if (correctAnswer != waxonUtils.evaluate(input.answer, undefined, ['/'])) {
+    return {
+      code : -1,
+      message : 'Svaret stämmer inte, tyvärr.',
+    }
+  }
+
+  if (Math.abs(waxonUtils.gcd(answer[0], answer[1])) != 1) {
+    return {
       code : 0,
       message : 'Ditt svar är korrekt, men inte förkortat så långt som möjligt.',
-    };
-  }
-  else {
-    response = -1;
+    }
   }
 
-  return response;
+  return 1;
 };
