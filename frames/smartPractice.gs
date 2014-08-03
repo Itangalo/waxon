@@ -148,6 +148,9 @@ smartPractice.processResponse = function(responseCode, responseMessage, question
   waxon.setUserData(result, 'result');
   smartPractice.showResult();
 
+  for (var q in result) {
+    result[q] = this.numberOfCorrect(result[q]);
+  }
   waxon.setGlobalData(result, 'result', waxon.getUserId());
 
   this.displayQuestionInfo();
@@ -206,8 +209,8 @@ smartPractice.summary = function() {
       result = allResult[student][this.allowedQuestions[i]];
       if (result != undefined) {
         row[parseInt(i) + 1] = {
-          content : this.numberOfCorrect(result),
-          attributes : {background : (this.numberOfCorrect(result) >= this.required) ? '#88FF88' : 'yellow'},
+          content : result,
+          attributes : {background : (result >= this.required) ? '#88FF88' : 'yellow'},
         };
       }
       else {
