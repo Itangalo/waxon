@@ -12,6 +12,7 @@ smartPractice.teacherIds = ['teacher@example.com'];
 smartPractice.title = 'Procedurträning';
 smartPractice.limit = 10;
 smartPractice.required = 7;
+smartPractice.focusProbability = 0.9;
 smartPractice.allowedQuestions = [
   'negativeMixed',
   'orderOfOps',
@@ -38,7 +39,24 @@ smartPractice.practiceNeed = function(questionId) {
 }
 
 smartPractice.getQuestionList = function() {
-  return this.allowedQuestions || waxon.questionIds;
+  var questionList = this.allowedQuestions || waxon.questionIds;
+  var frameSettings = waxon.getUserData('frameSettings');
+  // If there is no question to focus on, just return the full list.
+  if (questionList.indexOf(frameSettings.focus) == -1) {
+    return questionList;
+  }
+
+  // If there is a set focus, we should either practice that question or one of
+  // the questions above it. Chance decides which.
+  if (Math.random() < this.focusProbability) {
+    return [frameSettings.focus];
+  }
+
+  questionList = questionList.slice(0, questionList.indexOf(frameSettings.focus));
+  if (questionList.length == 0) {
+    questionList = [frameSettings.focus];
+  }
+  return questionList;
 }
 
 smartPractice.buildQuestionStack = function() {

@@ -8,10 +8,11 @@
  * source code, comments on how to set up the script, and license details.
  */
 
-function doGet() {
+function doGet(e) {
   var app = UiApp.createApplication();
 
-  waxon.setGlobalData(waxon.getUserId(), 'users', waxon.getUserId())
+  waxon.setGlobalData(waxon.getUserId(), 'users', waxon.getUserId());
+  waxon.setUserData(e.parameter, 'frameSettings');
 
   var frame = waxon.resolveFrame();
   waxon.frames[frame].drawAreas();
@@ -31,7 +32,7 @@ var waxon = (function () {
   var questionStack = [];
   var cache = {};
   // Public variables
-  var versionNumber = 26;
+  var versionNumber = 27;
   var frames = {};
   var questions = {};
   var questionIds = {};
@@ -332,9 +333,9 @@ var waxon = (function () {
   return {
     // Variables
     versionNumber : versionNumber,
+    frames : frames,
     questions : questions,
     questionIds : questionIds,
-    frames : frames,
     // Methods
     getUserData : getUserData,
     setUserData : setUserData,
