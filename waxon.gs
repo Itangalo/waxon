@@ -32,7 +32,7 @@ var waxon = (function () {
   var questionStack = [];
   var cache = {};
   // Public variables
-  var versionNumber = 28;
+  var versionNumber = 29;
   var frames = {};
   var questions = {};
   var questionIds = {};
