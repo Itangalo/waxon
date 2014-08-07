@@ -5,10 +5,6 @@
 // Create a new object, inheriting properties from 'waxonFrame'.
 var shortTest = new waxonFrame('shortTest');
 
-// Set this to true to allow resetting the test.
-shortTest.demoMode = true;
-shortTest.teacherIds = ['teacher@example.com'];
-
 shortTest.stack = [
   'negativeMixed',
   'negativeMixed',
@@ -87,7 +83,7 @@ shortTest.drawAreas = function() {
 
   waxon.addArea('result');
 
-  if (this.demoMode == true) {
+  if (waxon.demoMode == true) {
     waxon.addArea('reset');
     var app = UiApp.getActiveApplication();
     waxon.addToArea('reset', app.createButton('starta om', app.createServerHandler('shortTestReset')));
@@ -96,7 +92,7 @@ shortTest.drawAreas = function() {
 
   waxon.addArea('table');
 
-  if (this.demoMode) {
+  if (waxon.demoMode) {
     waxonUtils.displayDemoInformation(attributes);
   }
 
@@ -124,7 +120,7 @@ shortTest.displayQuestionNumber = function() {
   }
 
   // Display a button to show result, if we're in demo mode or a teacher is viewing.
-  if (this.demoMode || this.teacherIds.indexOf(waxon.getUserId()) > -1) {
+  if (waxon.demoMode || waxon.teacherIds.indexOf(waxon.getUserId()) > -1) {
     waxon.clearArea('result');
     var app = UiApp.getActiveApplication();
     waxon.addToArea('result', app.createButton('sammanställ resultat', app.createServerHandler('shortTestSummary')));
@@ -195,7 +191,7 @@ shortTest.summary = function() {
   for (var user in allResult) {
     row = allResult[user];
     // If we are in demo mode, only record the first four letters of the user ID.
-    if (this.demoMode) {
+    if (waxon.demoMode) {
       row.unshift(user.substring(0, 4) + '…');
     }
     else {

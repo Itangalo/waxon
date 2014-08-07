@@ -10,6 +10,7 @@
 
 function doGet(e) {
   var app = UiApp.createApplication();
+  waxonOverrides();
 
   waxon.setGlobalData(waxon.getUserId(), 'users', waxon.getUserId());
   waxon.setUserData(e.parameter, 'frameSettings');
@@ -32,10 +33,13 @@ var waxon = (function () {
   var questionStack = [];
   var cache = {};
   // Public variables
-  var versionNumber = 29;
+  var versionNumber = 30;
   var frames = {};
   var questions = {};
   var questionIds = {};
+  var activeFrame = 'smartPractice';
+  var demoMode = true;
+  var teacherIds = ['teacher@example.com'];
 
 /**
  * Meta-functions, for managing property storage.
@@ -194,7 +198,7 @@ var waxon = (function () {
 
   // TODO.
   function resolveFrame() {
-    return 'shortTest';
+    return waxon.activeFrame;
   }
 
   function addQuestion(question, isNonQuestion) {
@@ -341,6 +345,9 @@ var waxon = (function () {
     frames : frames,
     questions : questions,
     questionIds : questionIds,
+    activeFrame : activeFrame,
+    demoMode : demoMode,
+    teacherIds : teacherIds,
     // Methods
     getUserData : getUserData,
     setUserData : setUserData,

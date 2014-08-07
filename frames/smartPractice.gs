@@ -5,10 +5,6 @@
 // Create a new object, inheriting properties from 'waxonFrame'.
 var smartPractice = new waxonFrame('smartPractice');
 
-// Set this to true to allow resetting the test.
-smartPractice.demoMode = true;
-smartPractice.teacherIds = ['teacher@example.com'];
-
 smartPractice.title = 'Procedurträning';
 smartPractice.limit = 10;
 smartPractice.required = 7;
@@ -88,7 +84,7 @@ smartPractice.drawAreas = function() {
   waxon.addArea('resultarea', attributes, 'resultat för 10 senaste svaren i varje kategori');
 
   // Display a button to show result, if we're in demo mode or a teacher is viewing.
-  if (this.demoMode || this.teacherIds.indexOf(waxon.getUserId()) > -1) {
+  if (waxon.demoMode || waxon.teacherIds.indexOf(waxon.getUserId()) > -1) {
     waxon.addArea('buttons');
     waxon.addArea('summaryarea');
     var app = UiApp.getActiveApplication();
@@ -96,7 +92,7 @@ smartPractice.drawAreas = function() {
     waxon.addToArea('buttons', '(Knappen är endast synlig för lärare, eller i demoläge. I demoläge är elev-ID:n avklippta.)', {fontSize : '12px'});
   }
 
-  if (this.demoMode) {
+  if (waxon.demoMode) {
     waxonUtils.displayDemoInformation(attributes);
   }
 
@@ -221,7 +217,7 @@ smartPractice.summary = function() {
   numberOfColumns = row.length;
   for (var student in allResult) {
     row = Array(numberOfColumns);
-    if (this.demoMode) {
+    if (waxon.demoMode) {
       row[0] = student.substring(0, 4);
     }
     else {
