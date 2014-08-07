@@ -32,7 +32,7 @@ var waxon = (function () {
   var questionStack = [];
   var cache = {};
   // Public variables
-  var versionNumber = 27;
+  var versionNumber = 28;
   var frames = {};
   var questions = {};
   var questionIds = {};
@@ -300,6 +300,8 @@ var waxon = (function () {
     var question = waxon.questions[questionInfo.id];
     var parameters = questionInfo.parameters;
     var handler = app.createServerHandler('checkAnswer');
+    var hideHandler = app.createClientHandler().forEventSource().setEnabled(false);
+    var processMessage = app.createLabel('Utvärderar ditt svar...').setVisible(false);
 
     var questionElements = question.questionElements(parameters);
     for (var i in questionElements) {
@@ -315,10 +317,13 @@ var waxon = (function () {
       catch(e) {}
       waxon.addToArea('answerarea', answerElements[i]);
       handler.addCallbackElement(answerElements[i]);
+      hideHandler.forTargets(answerElements[i]).setEnabled(false);
     }
 
     if (waxon.questions[waxon.getQuestionInfo().id].hideButton != true) {
-      waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).setId('answerSubmit'));
+      waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).addClickHandler(hideHandler).setId('answerSubmit'));
+      waxon.addToArea('answerarea', processMessage, {fontSize : '12px'});
+      hideHandler.forTargets(processMessage).setVisible(true);
     }
 
     var helpElements = question.helpElements(parameters);
