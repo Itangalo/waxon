@@ -1,6 +1,8 @@
 // These overrides can be set for each waxon installation.
 function waxonOverrides() {
-  waxon.activeFrame = 'smartPractice';
-  waxon.demoMode = true;
-  waxon.teacherIds = ['teacher@example.com'];
+  return {
+    activeFrame : 'shortTest',
+    demoMode : true,
+    teacherIds : ['teacher@example.com']
+  };
 }

@@ -37,6 +37,7 @@ var waxon = (function () {
   var frames = {};
   var questions = {};
   var questionIds = {};
+  // Properties that normally are overridden.
   var activeFrame = 'smartPractice';
   var demoMode = true;
   var teacherIds = ['teacher@example.com'];
@@ -345,9 +346,10 @@ var waxon = (function () {
     frames : frames,
     questions : questions,
     questionIds : questionIds,
-    activeFrame : activeFrame,
-    demoMode : demoMode,
-    teacherIds : teacherIds,
+    // Varibles that should be overridden
+    activeFrame : waxonOverrides().activeFrame || activeFrame,
+    demoMode : waxonOverrides().demoMode || demoMode,
+    teacherIds : waxonOverrides().teacherIds || teacherIds,
     // Methods
     getUserData : getUserData,
     setUserData : setUserData,

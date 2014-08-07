@@ -157,6 +157,10 @@ shortTest.processResponse = function(responseCode, responseMessage, questionStri
   waxon.removeQuestion();
 
   waxon.setUserData(result, 'result');
+  // Strip down the data before storing global results.
+  for (var i in result) {
+    result[i] = result[i].result || result[i];
+  }
   waxon.setGlobalData(result, 'result', waxon.getUserId());
 
   this.displayQuestionNumber();
