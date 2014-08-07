@@ -146,6 +146,10 @@ smartPractice.processResponse = function(responseCode, responseMessage, question
   }
 
   // Process responses. Only give new question on correct answer.
+  if (responseCode <= 0) {
+    waxon.addToArea('feedbackarea', 'Senaste svar: ' + answerString, {color : 'red'});
+  }
+
   if (responseCode < -1) {
     waxon.addToArea('feedbackarea', 'Ditt svar gick inte att tolka, eller innehåller någon orimlighet.');
   }
