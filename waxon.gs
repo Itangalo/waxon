@@ -33,7 +33,7 @@ var waxon = (function () {
   var questionStack = [];
   var cache = {};
   // Public variables
-  var versionNumber = 30;
+  var versionNumber = 31;
   var frames = {};
   var questions = {};
   var questionIds = {};
@@ -348,7 +348,7 @@ var waxon = (function () {
     questionIds : questionIds,
     // Varibles that should be overridden
     activeFrame : waxonOverrides().activeFrame || activeFrame,
-    demoMode : waxonOverrides().demoMode || demoMode,
+    demoMode : (waxonOverrides().demoMode === false) ? false : demoMode,
     teacherIds : waxonOverrides().teacherIds || teacherIds,
     // Methods
     getUserData : getUserData,
