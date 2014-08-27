@@ -104,7 +104,6 @@ createExpressions.questions = [
       b : 'Variabel för rektangelns bredd:',
     },
     questionLabel : 'Samband:',
-    correctExpression : '2l+2b=26',
     isEquation : true,
     substitutions : {
       b : '13-l',
@@ -137,7 +136,6 @@ createExpressions.questions = [
       g : 'Variabel för Goliats vikt:',
     },
     questionLabel : 'Samband:',
-    correctExpression : 'g=2*d',
     isEquation : true,
     substitutions : {
       g : '2*d',
@@ -237,7 +235,6 @@ createExpressions.questions = [
       B : 'hidden',
     },
     questionLabel : 'Ekvation:',
-    correctExpression : '40R+45B=300',
     isEquation : true,
     substitutions : {
       R : '(300-45*B)/40',
@@ -258,7 +255,6 @@ createExpressions.questions = [
       B : 'hidden',
     },
     questionLabel : 'Ekvation:',
-    correctExpression : '5B+10V=450',
     isEquation : true,
     substitutions : {
       B : '(450-10V)/5',
