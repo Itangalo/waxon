@@ -50,14 +50,15 @@ var aboutArea = new gashArea('about', {
  * Main entry point for waxon.
  */
 waxon.doGet = function(queryInfo) {
+  // Ensure that we have a frame.
   if (!(this.frame instanceof waxonFrame)) {
     gash.areas.question.add('There is no frame to use. You need to install a waxon question frame.');
     return;
   }
-
   var app = UiApp.getActiveApplication();
   app.setTitle(this.frame.title);
 
+  // Get the relevant question data.
   var userData = {};
   var questionId, activeQuestion, parameters;
   userData = this.frame.resolveQuestion(userData);
@@ -73,7 +74,14 @@ waxon.doGet = function(queryInfo) {
   else {
     questionId = userData.activeQuestion.questionId;
   }
-  question = this.questions[questionId];
+
+  // Allow the frame to react before we construct the question.
+  if (typeof this.frame.initialize == 'function') {
+    this.frame.initialize(userData);
+  }
+
+  // Populate question area and answer area.
+  var question = this.questions[questionId];
   parameters = userData.activeQuestion.parameters;
 
   var elements = question.questionElements(parameters)
@@ -97,7 +105,6 @@ waxon.doGet = function(queryInfo) {
     }
     gash.areas.answer.add(elements[i]);
   }
-
   var answerHandler = app.createServerHandler('waxonAnswerSubmit');
   gash.areas.answer.add('');
   if (!question.hideAnswerButton) {
@@ -107,6 +114,7 @@ waxon.doGet = function(queryInfo) {
     gash.areas.answer.add(app.createButton('Hoppa över fråga', answerHandler).setId('answerSkip'), {float : 'right'});
   }
 
+  // Check if we should populate learning and result area.
   if (!this.frame.hideHelp) {
     var elements = question.helpElements(parameters)
     for (var i in elements) {
@@ -124,10 +132,12 @@ waxon.doGet = function(queryInfo) {
     this.frame.displayResult(userData);
   }
 
+  // If the userData needs saving, save it. (It probably does.)
   if (userData.needsSaving) {
     // Do magic.
   }
 
+  // Add some fine print for anyone interested.
   gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
   gash.areas.about.add('You can find more information about waxon at ');
   gash.areas.about.add('https://github.com/Itangalo/waxon');
