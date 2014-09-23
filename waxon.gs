@@ -1,566 +1,278 @@
 /**
- * @file: Main module and functions for the Waxon framework.
+ * @file: Trying out some gash stuff.
  */
 
 /**
  * This project is licensed under GNU general public license. Feel free to
  * use, study, share and improve. See https://github.com/Itangalo/waxon/ for
- * source code, comments on how to set up the script, and license details.
+ * source code and license details. The waxon project builds on the gash
+ * framework. See https://github.com/Itangalo/gash/ for details.
  */
 
-function doGet(e) {
-  var app = UiApp.createApplication();
-  waxonOverrides();
+var p = new gashPlugin('waxon');
 
-  waxon.setGlobalData(waxon.getUserId(), 'users', waxon.getUserId());
-  waxon.setUserData(e.parameter, 'frameSettings');
-
-  var frame = waxon.resolveFrame();
-  waxon.frames[frame].drawAreas();
-
-  var questionInfo = waxon.getQuestionInfo();
-  waxon.buildQuestion(questionInfo);
-
-  return app;
-}
-
-/**
- * The main module for the Waxon framework, taking care of UI calls and some more.
- */
-var waxon = (function () {
-  // Private variables
-  var currentFrame = null;
-  var questionStack = [];
-  var cache = {};
-  // Public variables
-  var versionNumber = 31;
-  var frames = {};
-  var questions = {};
-  var questionIds = {};
-  // Properties that normally are overridden.
-  var activeFrame = 'smartPractice';
-  var demoMode = true;
-  var teacherIds = ['teacher@example.com'];
-
-/**
- * Meta-functions, for managing property storage.
- */
-
-  // Fetches (and if necessary builds) the hopefully unique ID for
-  // this instance of Waxon. Uses a time-based token.
-  function getScriptId() {
-    if (typeof PropertiesService.getScriptProperties().getProperty('waxon id') == 'string') {
-      return PropertiesService.getScriptProperties().getProperty('waxon id');
-    }
-    else {
-      var d = new Date();
-      return PropertiesService.getScriptProperties().setProperty('waxon id', 'waxon' + d.valueOf()).getProperty('waxon id');
-    }
-  };
-
-  // Fetches (and if necessary builds) the user ID for this Waxon script.
-  // If the user is logged in, the e-mail will be used. Otherwise a time-based
-  // token will be built.
-  function getUserId() {
-    if (Session.getActiveUser().getEmail() == '') {
-      var waxonUserIds = JSON.parse(PropertiesService.getUserProperties().getProperty('waxon user id'));
-      if (waxonUserIds == null) {
-        waxonUserIds = {};
-      }
-      if (waxonUserIds[getScriptId()] == undefined) {
-        var d = new Date();
-        waxonUserIds[getScriptId()] = 'id-' + d.valueOf();
-        PropertiesService.getUserProperties().setProperty('waxon user id', JSON.stringify(waxonUserIds));
-        return 'id-' + d.valueOf();
-      }
-      else {
-        return waxonUserIds[getScriptId()];
-      }
-    }
-    else {
-      return Session.getActiveUser().getEmail();
-    }
-  }
-
-  // Fetches stored data with a given store Id.
-  function getUserData(storeId) {
-    // Verify that we have something that looks like a valid storeId.
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    var result = PropertiesService.getUserProperties().getProperty(storeId);
-    if (result == null) {
-      return result;
-    }
-    else {
-      return JSON.parse(result);
-    }
-  }
-
-  // Stores data with a given store Id.
-  function setUserData(data, storeId, userId) {
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    PropertiesService.getUserProperties().setProperty(storeId, JSON.stringify(data));
-    return;
-  }
-
-  // Fetches stored data with a given store Id.
-  function getGlobalData(storeId, subProperty) {
-    // Call recurively if a subProperty is set.
-    if (subProperty != undefined) {
-      var parent = getGlobalData(storeId);
-      if (typeof parent == 'object' && parent != null) {
-        return parent[subProperty];
-      }
-      else {
-        return undefined;
-      }
-    }
-
-    // Verify that we have something that looks like a valid storeId.
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    var result = PropertiesService.getScriptProperties().getProperty(storeId);
-    if (result == null) {
-      return result;
-    }
-    else {
-      return JSON.parse(result);
-    }
-  }
-
-  // Stores data with a given store Id.
-  function setGlobalData(data, storeId, subProperty) {
-    if (typeof storeId != 'string') {
-      return false;
-    }
-    // If a sub property should be set, fetch the parent and set sub property.
-    if (subProperty != undefined) {
-      var parent = getGlobalData(storeId) || {};
-      parent[subProperty] = data;
-      data = parent;
-    }
-
-    PropertiesService.getScriptProperties().setProperty(storeId, JSON.stringify(data));
-    return;
-  }
-
-/**
- * Functions for managing areas/UI.
- */
-  // Adds a new area, with specified CSS-attributes.
-  function addArea(name, attributes, label) {
-    var app = UiApp.getActiveApplication();
-    var captionPanel = app.createCaptionPanel(label || '').setStyleAttributes({border : 'none', padding : '0px', margin : '0px'});//.setStyleAttributes(attributes || {});
-    var scrollPanel = app.createScrollPanel().setId(name + '-wrapper').setStyleAttributes(attributes || {});
-    var container = app.createVerticalPanel().setId(name);
-    captionPanel.add(scrollPanel);
-    scrollPanel.add(container);
-    app.add(captionPanel);
-    return app;
-  }
-
-  // Adds a UI element to the specified area. If just a text string is provided,
-  // it will be added as a plain label element.
-  function addToArea(area, element, attributes) {
-    // Merge the frame's default attributes with any overrides specified by arguments.
-    attributes = attributes || {};
-    for (var i in waxon.frames[waxon.resolveFrame()].attributes) {
-      attributes[i] = attributes[i] || waxon.frames[waxon.resolveFrame()].attributes[i];
-    }
-
-    var app = UiApp.getActiveApplication();
-    var panel = app.getElementById(area);
-    if (typeof element == 'string') {
-      element = app.createLabel(element);
-    }
-    panel.add(element.setStyleAttributes(attributes));
-    return app;
-  }
-
-  // Removes all elements from the specified area.
-  function clearArea(area) {
-    var app = UiApp.getActiveApplication();
-    var panel = app.getElementById(area);
-    panel.clear();
-    return app;
-  }
-
-/**
- * Managing question and frame objects
- */
-
-  function addFrame(frame) {
-    frames[frame.id] = frame;
-  }
-
-  // TODO.
-  function resolveFrame() {
-    return waxon.activeFrame;
-  }
-
-  function addQuestion(question, isNonQuestion) {
-    questions[question.id] = question;
-    if (isNonQuestion != true) {
-      questionIds[question.id] = question.id;
-    }
-  }
-
-/**
- * Managing the question stack and its content.
- */
-
-  // Fetches (and if necessary builds) the question stack for the acting
-  // user. Also populates the entries in the stack with parameters, and
-  // stores the stack for persistence between page loads.
-  function getQuestionStack() {
-    var stack = getUserData('stack');
-    if (Array.isArray(stack) != true || stack.length < 1) {
-      stack = waxon.frames[resolveFrame()].buildQuestionStack() || ['noMoreQuestions'];
-    }
-    // Some frames may accidentally return a string, not an array.
-    if (typeof stack == 'string') {
-      stack = [stack];
-    }
-
-    for (var index in stack) {
-      if (stack[index].processed != true) {
-        stack[index] = processQuestion(stack[index]);
-      }
-    }
-    setUserData(stack, 'stack');
-    return stack;
-  }
-
-  // Populates a question (in the question stack) with data that is needed
-  // when building and displaying the actual question.
-  function processQuestion(questionInfo) {
-    // Check if the question is just specified by a question ID.
-    if (typeof questionInfo == 'string') {
-      questionInfo = {
-        id : questionInfo,
-      }
-    }
-
-    // If the question is already processed, we shortcut the process.
-    if (questionInfo.processed == true) {
-      return questionInfo;
-    }
-
-    // Set question parameters, if needed.
-    if (questionInfo.parameters == undefined) {
-      questionInfo.parameters = waxon.questions[questionInfo.id].generateParameters(questionInfo.options || {});
-    }
-
-    questionInfo.processed = true;
-    return questionInfo;
-  }
-
-  // Fetches (and if necessary builds) question info for a specified
-  // index in the question stack. Index defaults to the first question.
-  function getQuestionInfo(index) {
-    index = index || 0;
-    return getQuestionStack()[index];
-  }
-
-  // Removes the topmost question in the stack, or the specified question.
-  function removeQuestion(index) {
-    index = index || 0;
-    var stack = getQuestionStack();
-    stack.splice(index, 1);
-    setUserData(stack, 'stack');
-  }
-
-  // Fetches the parameters from a question in the question stack, assuming the
-  // parameters are already built. Uses first question if none is specified.
-  function readParameters(index) {
-    index = index || 0;
-    var stack = getQuestionStack();
-    return stack[index].parameters;
-  }
-
-  // Assures that a question response has the right format.
-  function cleanupResponse(response) {
-    var cleanResponse = {};
-    cleanResponse.message = response.message || '';
-    if (typeof response.code == 'number') {
-      cleanResponse.code = parseInt(response.code);
-    }
-    else {
-      cleanResponse.code = parseInt(response);
-    }
-    return cleanResponse;
-  }
-
-  // Displays a question
-  function buildQuestion(questionInfo) {
-    var app = UiApp.getActiveApplication();
-    waxon.clearArea('questionarea');
-    waxon.clearArea('answerarea');
-    waxon.clearArea('helparea');
-
-    var question = waxon.questions[questionInfo.id];
-    var parameters = questionInfo.parameters;
-    var handler = app.createServerHandler('checkAnswer');
-    var hideHandler = app.createClientHandler().forEventSource().setEnabled(false);
-    var processMessage = app.createLabel('Utvärderar ditt svar...').setVisible(false);
-
-    var questionElements = question.questionElements(parameters);
-    for (var i in questionElements) {
-      waxon.addToArea('questionarea', questionElements[i]);
-    }
-
-    var answerElements = question.answerElements(parameters);
-    for (var i in answerElements) {
-      try {
-        answerElements[i].setId(i);
-        answerElements[i].setName(i);
-      }
-      catch(e) {}
-      waxon.addToArea('answerarea', answerElements[i]);
-      handler.addCallbackElement(answerElements[i]);
-      hideHandler.forTargets(answerElements[i]).setEnabled(false);
-    }
-
-    if (waxon.questions[waxon.getQuestionInfo().id].hideButton != true) {
-      waxon.addToArea('answerarea', app.createSubmitButton('Skicka svar').addClickHandler(handler).addClickHandler(hideHandler).setId('answerSubmit'));
-      waxon.addToArea('answerarea', processMessage, {fontSize : '12px'});
-      hideHandler.forTargets(processMessage).setVisible(true);
-    }
-
-    var helpElements = question.helpElements(parameters);
-    for (var i in helpElements) {
-      waxon.addToArea('helparea', helpElements[i]);
-    }
-
-    return app;
-  }
-
-  // The publically accessible properties and methods
-  return {
-    // Variables
-    versionNumber : versionNumber,
-    frames : frames,
-    questions : questions,
-    questionIds : questionIds,
-    // Varibles that should be overridden
-    activeFrame : waxonOverrides().activeFrame || activeFrame,
-    demoMode : (waxonOverrides().demoMode === false) ? false : demoMode,
-    teacherIds : waxonOverrides().teacherIds || teacherIds,
-    // Methods
-    getUserData : getUserData,
-    setUserData : setUserData,
-    getGlobalData : getGlobalData,
-    setGlobalData : setGlobalData,
-    addArea : addArea,
-    addToArea : addToArea,
-    clearArea : clearArea,
-    addQuestion : addQuestion,
-    addFrame : addFrame,
-    readParameters : readParameters,
-    cleanupResponse : cleanupResponse,
-    getScriptId : getScriptId,
-    getUserId : getUserId,
-    getQuestionStack : getQuestionStack,
-    getQuestionInfo : getQuestionInfo,
-    removeQuestion : removeQuestion,
-    resolveFrame : resolveFrame,
-    buildQuestion : buildQuestion,
-  };
-}) ();
-
-/**
- * Class-like function for building waxon questions.
- *
- * @param id
- *   A string with the ID of the question being created.
- * @param isNonQuestion
- *   Set to true if the question type isn't really a question, and shouldn't for example
- *   be available in a selection of random questions.
- * @param parent
- *   Any question type to inherit properties from. Using this is a quick way of making
- *   tweaks to already existing questions.
- */
-function waxonQuestion(id, isNonQuestion, parent) {
-  this.id = id;
-  waxon.addQuestion(this, isNonQuestion);
-
-  // Human-readable name for this question type.
-  this.title = undefined;
-
-  // Greates the parameters used by the question. May take 'options' being
-  // passed to the question.
-  this.generateParameters = function(options) {
-    return {
-      a : waxonUtils.randomInt(-10, 10),
-      b : waxonUtils.randomInt(-10, 10, [0]),
-    };
-  };
-
-  // Creates an object with UI elements to display as the actual question.
-  this.questionElements = function(parameters) {
-    var app = UiApp.getActiveApplication();
-    var element1 = app.createLabel('I am a question built on random parameters a (' + parameters.a + ') and b (' + parameters.b + ').');
-    var element2 = app.createLabel('The question may be built on several elements, including images and more.');
-    var element3 = waxonUtils.latex2image('\\frac{x^' + parameters.a + '}{x^' + parameters.a + '-' + parameters.b + '}');
-    return {
-      element1 : element1,
-      element2 : element2,
-      element3 : element3,
-    }
-  };
-
-  // Represents the question as a plain-text string.
-  this.questionToString = function(parameters) {
-    var question = [];
-    for (var i in parameters) {
-      question.push(i + ': ' + parameters[i]);
-    }
-    return question.join(', ');
-  }
-
-  // Creates an object with UI elements to submit answer to the question.
-  this.answerElements = function(parameters) {
-    var app = UiApp.getActiveApplication();
-    var label = app.createLabel('Svar:');
-    var answer = app.createTextBox().setWidth('200px').setFocus(true);
-    return {
-      label : label,
-      answer : answer,
-    };
-  };
-
-  // Represents the question as a plain-text string.
-  this.answerToString = function(input) {
-    return input.answer;
-  }
-
-  // Evaluates the submitted answer. 'input' contains the full input from the handler.
-  this.evaluateAnswer = function(parameters, input) {
-    return {
-      code : 0,
-      message : 'There is no method for evaluating your answer. Sorry.',
-    }
-  };
-
-  // Creates an object with UI elements with help: video links, further instruciton, etc.
-  this.helpElements = function() {
-    return {};
-  }
-
-  // Sets any properties that should be inherited from the parent question type.
-  if (parent != undefined) {
-    for (var i in parent) {
-      if (i != 'id') {
-        this[i] = parent[i];
-      }
-    }
-  }
+p.apiVersion = 2;
+p.subVersion = 1;
+p.dependencies = {
+  gash : {apiVersion : 2, subVersion : 1},
+  utils : {apiVersion : 1, subVersion : 1},
+  areas : {apiVersion : 1, subVersion : 1},
 };
 
-function waxonFrame(id) {
+/**
+ * Response codes for evaluating answers.
+ */
+p.CORRECT = 1;
+p.CLOSE = 0;
+p.INCORRECT = -1;
+p.WRONG_FORM = -2;
+p.CANNOT_INTERPRET = -3;
+p.SKIPPED = -10;
+
+p.questionIds = {};
+p.frame;
+
+/**
+ * The UI areas used by waxon.
+ */
+var quesetionArea = new gashArea('question', {
+  label : 'Fråga',
+  areaAttributes : {width : '360px', float : 'left', height : '240px', fontSize : '24px', position : 'fixed', top : '100px', left : '70px'},
+});
+var answerArea = new gashArea('answer', {
+  label : 'Svara här',
+  areaAttributes : {width : '370px', float : 'left', height : '240px', fontSize : '24px', position : 'fixed', top : '100px', left : '500px'},
+});
+var learnArea = new gashArea('learn', {
+  label : 'Läs på och lär mer',
+  areaAttributes : {width : '370px', float : 'left', height : '140px', position : 'fixed', top : '400px', left : '70px', height : '140px'},
+  elementAttributes : {color : 'gray'},
+});
+var resultArea = new gashArea('result', {
+  label : 'Dina resultat (även synliga för läraren)',
+  areaAttributes : {width : '370px', float : 'left', height : '140px', position : 'fixed', top : '400px', left : '500px'},
+  elementAttributes : {color : 'gray'},
+});
+var browseArea = new gashArea('browse', {
+  label : 'Navigera bland frågorna',
+  areaAttributes : {width : '810px', height : '40px', position : 'fixed', top : '30px', left : '70px', overflow : 'auto'},
+  elementAttributes : {marginRight : '5px', fontSize : '0.75em', float : 'left'},
+});
+var aboutArea = new gashArea('about', {
+  areaAttributes : {width : '810px', height : '40px', position : 'fixed', top : '600px', left : '70px', overflow : 'auto', border : 'none'},
+  elementAttributes : {color : 'gray', fontSize : '0.75em'},
+});
+
+/**
+ * Main entry point for waxon.
+ */
+p.doGet = function(queryInfo) {
+  var app = UiApp.getActiveApplication();
+  // Alternative images: http://ibin.co/1bKBH71X3MKU (open book), http://ibin.co/1bKDMgOUU6WU (open book 960 px)
+  // http://ibin.co/1bK3afRxpjiF (book pages), http://ibin.co/1bK70yYxM42P (square lined paper)
+  app.setStyleAttribute('backgroundImage', 'url("http://ibin.co/1bKDMgOUU6WU")').setStyleAttribute('backgroundRepeat', 'no-repeat').setHeight(900).setWidth(900).setStyleAttribute('overflow', 'auto');
+  var handler = app.createServerHandler('callback');
+  gash.areas.result.add(app.createButton('Click me', handler).setId('add'));
+  gash.areas.result.add(app.createButton('Clear', handler).setId('clear'));
+  gash.areas.question.add('Lös följande ekvation');
+  gash.areas.question.add(gash.math.latex2image(gash.math.randomBinomial().latex + '=' + gash.math.randomBinomial().latex));
+  var select = app.createListBox().setName('area');
+  select.addItem('Frågerutan', 'question').addItem('Svarsrutan', 'answer').addItem('Lärtips', 'learn').addItem('Resultatrutan', 'result').addItem('Navigering', 'browse');
+  handler.addCallbackElement(select);
+  gash.areas.browse.add(app.createListBox().addItem('Grundträning', 'basics').addItem('Räta linjen', 'line'));
+  for (var i = 0; i < 12; i++) {
+    gash.areas.browse.add(app.createAnchor('Uppg 1', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'));
+    gash.areas.browse.add(app.createAnchor('Uppg 2', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'), {color : 'green'});
+    gash.areas.browse.add(app.createAnchor('Uppg 3', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'));
+  }
+  gash.areas.result.add(select);
+
+  gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
+  gash.areas.about.add('You can find more information about waxon at ');
+  gash.areas.about.add('https://github.com/Itangalo/waxon');
+}
+
+function callback(eventInfo) {
+  if (eventInfo.parameter.source == 'add') {
+    gash.areas[eventInfo.parameter.area].add('added', {'color' : 'blue'});
+  }
+  if (eventInfo.parameter.source == 'clear') {
+    gash.areas[eventInfo.parameter.area].clear();
+  }
+  return UiApp.getActiveApplication();
+}
+
+/**
+ * Class for waxon questions, initializing the question.
+ *
+ * @param {string} [id= The unique id of this question.]
+ * @param {configObject} [options= Any options, used as default when the question is called.]
+ * return {waxonQuestion}
+ */
+function waxonQuestion(id, options) {
+  if (waxon.questions[id] != undefined) {
+    throw 'Cannot add question with ID ' + id + ': Name is taken.';
+  }
+  // Add the ID to the question ID list, and add a reference to the question in waxon.questions.
+  waxon.questionIds[id] = id;
+  waxon.questions[id] = this;
+
+  // Add some required properties.
   this.id = id;
-  waxon.addFrame(this);
+  this.title = id;
+  this.shortTitle = id;
+  if (typeof options != 'object') {
+    options = {};
+  }
+  this.defaults = new configObject(options);
 
-  this.buildQuestionStack = function() {
-    // Just pick three random questions.
-    var stack = [];
-    for (var i in waxon.questionIds) {
-      stack.push(i);
-    }
-    return waxon.randomSelect(stack);
+  return this;
+}
+
+/**
+ * Generates parameters that dictates all moving parts in the question.
+ *
+ * The parameters are used to build all other parts of the question. They must describe the question
+ * unambiguously, but could also contain extra information useful in other methods of the question.
+ *
+ * @param {object} [options= Any options passed in, for controlling how paramters are generated.]
+ * return {object}
+ */
+waxonQuestion.prototype.generateParameters = function(options) {
+  return {};
+}
+
+/**
+ * Builds UI elements presenting the question, based on given parameters.
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * return {object} [A set of UI elements that can be used by gash, keyed by the ID/name they should be given.]
+ */
+waxonQuestion.prototype.questionElements = function(parameters) {
+  return {
+    question : 'The question elements for ' + this.title + ' have not yet been overridden.'
   };
+}
 
-  this.attributes = {
-    fontSize : '18px',
+/**
+ * Generates a plain-text string representing the question. Could be used in tool tip popups.
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * return {string}
+ */
+waxonQuestion.prototype.questionToString = function(parameters) {
+  return this.title + ' have no method of converting the question to a string.';
+}
+
+/**
+ * Builds UI elements used for entering an answer to the question.
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * return {object} [A set of UI elements that can be used by gash, keyed by the ID/name
+ *   they should be given. No need to set ID or name -- this is done by the caller.]
+ */
+waxonQuestion.prototype.answerElements = function(parameters) {
+  return {
+    label : 'Svar',
+    answer : UiApp.getActiveApplication().createTextBox()
   };
-
-  this.drawAreas = function() {
-    var app = UiApp.getActiveApplication();
-    var attributes = {
-      border : 'thin black solid',
-      minHeight : '100px',
-      maxHeight : '200px',
-      margin : '3px',
-      padding : '3px',
-    }
-
-    waxon.addArea('questionarea', attributes);
-    waxon.addArea('answerarea', attributes);
-    waxon.addArea('feedbackarea', attributes, 'Feedback');
-    waxon.addArea('helparea', attributes, 'Hjälp');
-    attributes.visibility = 'none';
-    waxon.addArea('resultarea', attributes);
-    waxon.addArea('debug', attributes);
-
-    return app;
-  }
-
-  this.processResponse = function(responseCode, responseMessage, questionString, answerString) {
-    var app = UiApp.getActiveApplication();
-
-    // Set default response messages for the different response codes.
-    if (responseCode > 0) {
-      responseMessage = responseMessage | 'Rätt!';
-      // If correctly answered, remove the current question from the stack.
-      waxon.removeQuestion();
-    }
-    else if (responseCode < 0) {
-      responseMessage = responseMessage | 'Fel. Försök igen!';
-    }
-    else if (responseCode = 0) {
-      responseMessage = responseMessage | 'Nära. Kolla ditt svar och försök igen.';
-    }
-    // Display the response message to the user.
-    waxon.addToArea('feedback', app.createLabel(responseMessage));
-    return app;
-  }
 }
 
-function checkAnswer(eventInfo) {
-  var app = UiApp.getActiveApplication();
-  var questionInfo = waxon.getQuestionInfo();
-  var parameters = questionInfo.parameters;
-  var questionId = questionInfo.id;
-
-  var response = waxon.cleanupResponse(waxon.questions[questionId].evaluateAnswer(parameters, eventInfo.parameter));
-  var questionString = waxon.questions[questionId].questionToString(parameters);
-  var answerString = waxon.questions[questionId].answerToString(eventInfo.parameter);
-
-  waxon.frames[waxon.resolveFrame()].processResponse(response.code, response.message, questionString, answerString);
-  questionInfo = waxon.getQuestionInfo();
-  waxon.buildQuestion(questionInfo);
-  return app;
+/**
+ * Generates a plain-text string representing the answer. Could be used in text feedback.
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * @param {object} [input= The answer form input.]
+ * return {string}
+ */
+waxonQuestion.prototype.answerToString = function(parameters, input) {
+  return input.answer;
 }
 
-function debug(variable, reset) {
-  var app = UiApp.getActiveApplication();
-  if (reset == true) {
-    waxon.clearArea('debug');
-  }
-
-  if (typeof variable == 'object') {
-    for (var i in variable) {
-      waxon.addToArea('debug', app.createLabel(variable[i]));
-    }
-  }
-  else {
-    waxon.addToArea('debug', app.createLabel(variable));
-  }
+/**
+ * Evaluates the answer to the question.
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * @param {object} [input= The answer form input.]
+ * return {object} [Could be one of the answer codes described by waxon constants, or an
+ *   object with one 'code' property (waxon constant) and a 'message' property with some
+ *   feedback in plain text.]
+ */
+waxonQuestion.prototype.evaluateAnswer = function(parameters, input) {
+  return {
+    code : waxon.CANNOT_INTERPRET,
+    message : this.title + ' does not have any method for evaluating answers.'
+  };
 }
 
-function reset() {
-  PropertiesService.getUserProperties().deleteAllProperties();
-  PropertiesService.getScriptProperties().deleteAllProperties();
+/**
+ * Builds UI elements used for providing help.
+ *
+ * Any help on input format should be added in answerElements -- this is for hints, video
+ * links and on. (The help may be hidden in some waxon frames.)
+ *
+ * @param {object} [parameters= The parameters describing moving parts of the question.]
+ * return {object} [A set of UI elements that can be used by gash, keyed by the ID/name
+ *   they should be given.]
+ */
+waxonQuestion.prototype.helpElements = function(parameters) {
+  return {
+    label : this.title + ' does not have any help text or help links.'
+  };
 }
 
-function logTime(sinceTime, message) {
-  if (typeof message == 'string') {
-    Logger.log(message);
+waxonFrame = function(id) {
+  if (waxon.frame != undefined) {
+    throw 'Cannot use frame ' + id + ': Another frame is already in use.';
   }
-  var now = new Date().getTime();
-  Logger.log(now - sinceTime);
+
+  // Add some required properties.
+  this.id = id;
+
+  // Some properties that may be overridden.
+  this.title = id;
+  this.allowQuestionSkip = true;
+  this.displayHelp = true;
+  this.displayResult = true;
+
+  return this;
+}
+
+/**
+ * Investigates user data and returns a question instance. Main entry point for the frame.
+ *
+ * This function will sometimes have to make drastic changes to the userData object,
+ * which probably contains information about previous questions, results, and more.
+ *
+ * @param {object} [userData= User data fetched by waxon. It contains at least the following properties:
+ *   'gashId' {string} The unique ID of the user.
+ *   'activeQuestion' {object} Either a string with a question ID, or an object with the
+ *     the properties 'questionId' and 'parameters' for question ID and parameters that
+ *     matches this question.
+ *   'needsSaving' {boolean} Whether waxon needs saving this object, once processed.
+ *   with a unique user id, and the property 'needs saving' telling waxon if the object
+ *   needs to be saved.]
+ * return {object} [The user data, possibly modified.]
+ */
+waxonFrame.prototype.resolveQuestion = function(userData) {
+}
+
+/**
+ * Reacts on the answer evaluation, for example by updating user results and removing the active question.
+ *
+ * This function could build a new active question and populate it with parameters,
+ * which may be a good idea since data storing/loading is fairly time expensive.
+ *
+ * @param {integer} [responseCode= One of the response codes described by waxon constants.]
+ * @param {string} [responseMessage= Any feedback provided by answer evaluation. Often empty.]
+ * @param {string} [questionString= A string representing the answered question. May be empty.]
+ * @param {string} [answerString= A string representing the question answer. May be empty.]
+ * @param {object} [userData= The full user data object. It contains the property 'gashId'
+ *   with a unique user id, the 'activeQuestion' property and the property 'needsSaving' telling
+ *   waxon if the object needs to be saved.]
+ * return {object} [An object which must contain the following properties:
+ *   questionId {string} The ID of the question.
+ *   parameters {object} The parameters to use with the question.]
+ */
+waxonFrame.prototype.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
 }
