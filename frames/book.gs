@@ -16,6 +16,33 @@ var f = new waxonFrame('book');
 
 f.title = 'En bok med mattefrågor';
 
+f.includedQuestions = {
+  baba : {
+    questionId : 'dev',
+    options : {a : 1, b : 2},
+    group : 'Kapitel 1',
+    label : 'Baba',
+  },
+  bibi : {
+    questionId : 'dev',
+    options : {a : 2, b : 2},
+    group : 'Kapitel 1',
+    label : 'Bibi',
+  },
+  lolo : {
+    questionId : 'dev',
+    options : {a : 2, b : 3},
+    group : 'Kapitel 2',
+    label : 'Lolo',
+  },
+  lala : {
+    questionId : 'dev',
+    options : {a : 3, b : 2},
+    group : 'Kapitel 2',
+    label : 'Lala',
+  },
+}
+
 // Tweaking the settings of waxon areas.
 gash.areas.question.defaults.label = 'Fråga';
 gash.areas.question.defaults.areaAttributes = {
@@ -58,6 +85,25 @@ f.resolveQuestion = function(userData) {
 
   userData.activeQuestion = 'dev';
   return userData;
+}
+
+f.initialize = function(userData) {
+  var questionList = {};
+  for (var i in this.includedQuestions) {
+    if (questionList[this.includedQuestions[i].group] == undefined) {
+      questionList[this.includedQuestions[i].group] = {};
+    }
+    this.includedQuestions[i].id = i;
+    questionList[this.includedQuestions[i].group][i] = this.includedQuestions[i];
+
+  }
+
+  var app = UiApp.getActiveApplication();
+  var groupSelect = app.createListBox().setName('groupSelect');
+  for (var i in questionList) {
+    groupSelect.addItem(i, i);
+  }
+  gash.areas.browse.add(groupSelect);
 }
 
 f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
