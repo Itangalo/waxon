@@ -272,6 +272,26 @@ waxonQuestion.prototype.helpElements = function(parameters) {
   };
 }
 
+/**
+ * Builds a new question based on an existing one.
+ *
+ * @param {object} [options= Any options passed in, for controlling how paramters are generated.]
+ * return {waxonQuestion} [The cloned question, with tweaks added.]
+ */
+waxonQuestion.prototype.tweak = function(id, options, overrides) {
+  var tweak = new waxonQuestion(id);
+  for (var i in this) {
+    if (this.hasOwnProperty(i) && i != 'id') {
+      tweak[i] = this[i];
+    }
+  }
+  for (var i in overrides) {
+    tweak[i] = overrides[i];
+  }
+  tweak.defaults = tweak.defaults.overwriteWith(options);
+  return tweak;
+}
+
 waxonFrame = function(id) {
   if (waxon.frame != undefined) {
     throw 'Cannot use frame ' + id + ': Another frame is already in use.';
@@ -340,3 +360,34 @@ waxonFrame.prototype.processResponse = function(responseCode, responseMessage, q
  */
 waxonFrame.prototype.displayResult = function(userData) {
 }
+
+waxon.tests = {
+  tweakQuestionTest : function() {
+    var q1 = new waxonQuestion('q1', {a : 1, b : 2});
+    q1.title = 'Original question';
+    q2 = q1.tweak('q2', {a : 3, c : 4}, {title : 'Tweaked question'});
+    if (waxon.questions.q2 == undefined) {
+      throw 'Tweaking of questions fails to add them to the waxon object.';
+    }
+    if (q2.defaults.a != 3) {
+      throw 'Tweaking of questions fails to write new default options.';
+    }
+    if (q1.defaults.a == 3) {
+      throw 'Tweaking of questions overwrites default options in original question.';
+    }
+    if (q2.title != 'Tweaked question') {
+      throw 'Tweaking of questions do not add manual property overrides.';
+    }
+    if (q1.title == 'Tweaked question') {
+      throw 'Manual property overrides in question tweaks affects the original question.';
+    }
+    q1.answerToString = 'test';
+    if (q2.answerToString == 'test') {
+      throw 'Changing of original question affects the tweak.';
+    }
+    var q3 = q2.tweak('q3');
+    if (!(q3 instanceof waxonQuestion)) {
+      throw 'Tweaking of questions do not preseve instanceof.';
+    }
+  },
+};
