@@ -10,36 +10,31 @@
  * framework. See https://github.com/Itangalo/gash/ for details.
  */
 
-var q = new waxonQuestion('dev');
-
 var f = new waxonFrame('book');
 
 f.title = 'En bok med mattefrågor';
 
+var baba = new waxonQuestion('baba');
+var bibi = baba.tweak('bibi', {}, {title : 'Bibi'});
+var lolo = baba.tweak('lolo', {}, {title : 'Lolo'});
+var lala = bibi.tweak('lala', {}, {title : 'Lala'});
+
 f.includedQuestions = {
   baba : {
     questionId : 'dev',
-    options : {a : 1, b : 2},
     group : 'Kapitel 1',
-    label : 'Baba',
   },
   bibi : {
     questionId : 'dev',
-    options : {a : 2, b : 2},
     group : 'Kapitel 1',
-    label : 'Bibi',
   },
   lolo : {
     questionId : 'dev',
-    options : {a : 2, b : 3},
     group : 'Kapitel 2',
-    label : 'Lolo',
   },
   lala : {
     questionId : 'dev',
-    options : {a : 3, b : 2},
-    group : 'Kapitel 2',
-    label : 'Lala',
+    group : 'Kapitel 3',
   },
 }
 
@@ -88,23 +83,44 @@ f.resolveQuestion = function(userData) {
 }
 
 f.initialize = function(userData) {
-  var questionList = {};
-  for (var i in this.includedQuestions) {
-    if (questionList[this.includedQuestions[i].group] == undefined) {
-      questionList[this.includedQuestions[i].group] = {};
-    }
-    this.includedQuestions[i].id = i;
-    questionList[this.includedQuestions[i].group][i] = this.includedQuestions[i];
+  this.populateBrowser();
+}
 
+f.populateBrowser = function(selectedGroup) {
+  gash.areas.browse.clear();
+  // This function can be called from a handler, but also on page callback where we have no provided
+  // selected group. These checks verifies that we have a valid selectedGroup.
+  var questionList = gash.utils.groupByProperty(this.includedQuestions, 'group');
+  if (questionList[selectedGroup] == undefined) {
+    // See if the query parameters focuses on a question in a particular group. Otherwise, select first group.
+    if (gash.queryParameters.focus != undefined && this.includedQuestions[gash.queryParameters.focus] != undefined) {
+      selectedGroup = this.includedQuestions[gash.queryParameters.focus].group;
+    }
+    else {
+      selectedGroup = this.includedQuestions[Object.keys(this.includedQuestions)[0]].group;
+    }
   }
 
+  // Build a select list with the question groups.
   var app = UiApp.getActiveApplication();
-  var groupSelect = app.createListBox().setName('groupSelect');
+  var groupSelectHandler = app.createServerHandler('bookGroupSelectHandler');
+  var groupSelect = app.createListBox().setName('groupSelect').addChangeHandler(groupSelectHandler);
   for (var i in questionList) {
     groupSelect.addItem(i, i);
   }
+  groupSelect.setSelectedIndex(Object.keys(questionList).indexOf(selectedGroup));
   gash.areas.browse.add(groupSelect);
+
+  // Add links to the questions in this group.
+  for (var i in questionList[selectedGroup]) {
+    gash.areas.browse.add(app.createAnchor(waxon.questions[i].title, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'));
+  }
 }
 
 f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
+}
+
+function bookGroupSelectHandler(eventInfo) {
+  waxon.frame.populateBrowser(eventInfo.parameter.groupSelect);
+  return UiApp.getActiveApplication();
 }
