@@ -1,5 +1,6 @@
 /**
- * @file: Trying out some gash stuff.
+ * @file: Main file for waxon -- a framework for machine created and evaluated questions
+ * built on top of Google Apps Script.
  */
 
 /**
@@ -9,11 +10,11 @@
  * framework. See https://github.com/Itangalo/gash/ for details.
  */
 
-var p = new gashPlugin('waxon');
+var waxon = new gashPlugin('waxon');
 
-p.apiVersion = 2;
-p.subVersion = 1;
-p.dependencies = {
+waxon.apiVersion = 2;
+waxon.subVersion = 1;
+waxon.dependencies = {
   gash : {apiVersion : 2, subVersion : 1},
   utils : {apiVersion : 1, subVersion : 1},
   areas : {apiVersion : 1, subVersion : 1},
@@ -22,42 +23,24 @@ p.dependencies = {
 /**
  * Response codes for evaluating answers.
  */
-p.CORRECT = 1;
-p.CLOSE = 0;
-p.INCORRECT = -1;
-p.WRONG_FORM = -2;
-p.CANNOT_INTERPRET = -3;
-p.SKIPPED = -10;
+waxon.CORRECT = 1;
+waxon.CLOSE = 0;
+waxon.INCORRECT = -1;
+waxon.WRONG_FORM = -2;
+waxon.CANNOT_INTERPRET = -3;
+waxon.SKIPPED = -10;
 
-p.questionIds = {};
-p.frame;
+waxon.questionIds = {};
+waxon.questions = {};
+waxon.frame;
 
 /**
- * The UI areas used by waxon.
+ * The UI areas required by waxon.
  */
-var quesetionArea = new gashArea('question', {
-  label : 'Fråga',
-  areaAttributes : {width : '360px', float : 'left', height : '240px', fontSize : '24px', position : 'fixed', top : '100px', left : '70px'},
-});
-var answerArea = new gashArea('answer', {
-  label : 'Svara här',
-  areaAttributes : {width : '370px', float : 'left', height : '240px', fontSize : '24px', position : 'fixed', top : '100px', left : '500px'},
-});
-var learnArea = new gashArea('learn', {
-  label : 'Läs på och lär mer',
-  areaAttributes : {width : '370px', float : 'left', height : '140px', position : 'fixed', top : '400px', left : '70px', height : '140px'},
-  elementAttributes : {color : 'gray'},
-});
-var resultArea = new gashArea('result', {
-  label : 'Dina resultat (även synliga för läraren)',
-  areaAttributes : {width : '370px', float : 'left', height : '140px', position : 'fixed', top : '400px', left : '500px'},
-  elementAttributes : {color : 'gray'},
-});
-var browseArea = new gashArea('browse', {
-  label : 'Navigera bland frågorna',
-  areaAttributes : {width : '810px', height : '40px', position : 'fixed', top : '30px', left : '70px', overflow : 'auto'},
-  elementAttributes : {marginRight : '5px', fontSize : '0.75em', float : 'left'},
-});
+var questionArea = new gashArea('question');
+var answerArea = new gashArea('answer');
+var learnArea = new gashArea('learn');
+var resultArea = new gashArea('result');
 var aboutArea = new gashArea('about', {
   areaAttributes : {width : '810px', height : '40px', position : 'fixed', top : '600px', left : '70px', overflow : 'auto', border : 'none'},
   elementAttributes : {color : 'gray', fontSize : '0.75em'},
@@ -66,26 +49,84 @@ var aboutArea = new gashArea('about', {
 /**
  * Main entry point for waxon.
  */
-p.doGet = function(queryInfo) {
-  var app = UiApp.getActiveApplication();
-  // Alternative images: http://ibin.co/1bKBH71X3MKU (open book), http://ibin.co/1bKDMgOUU6WU (open book 960 px)
-  // http://ibin.co/1bK3afRxpjiF (book pages), http://ibin.co/1bK70yYxM42P (square lined paper)
-  app.setStyleAttribute('backgroundImage', 'url("http://ibin.co/1bKDMgOUU6WU")').setStyleAttribute('backgroundRepeat', 'no-repeat').setHeight(900).setWidth(900).setStyleAttribute('overflow', 'auto');
-  var handler = app.createServerHandler('callback');
-  gash.areas.result.add(app.createButton('Click me', handler).setId('add'));
-  gash.areas.result.add(app.createButton('Clear', handler).setId('clear'));
-  gash.areas.question.add('Lös följande ekvation');
-  gash.areas.question.add(gash.math.latex2image(gash.math.randomBinomial().latex + '=' + gash.math.randomBinomial().latex));
-  var select = app.createListBox().setName('area');
-  select.addItem('Frågerutan', 'question').addItem('Svarsrutan', 'answer').addItem('Lärtips', 'learn').addItem('Resultatrutan', 'result').addItem('Navigering', 'browse');
-  handler.addCallbackElement(select);
-  gash.areas.browse.add(app.createListBox().addItem('Grundträning', 'basics').addItem('Räta linjen', 'line'));
-  for (var i = 0; i < 12; i++) {
-    gash.areas.browse.add(app.createAnchor('Uppg 1', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'));
-    gash.areas.browse.add(app.createAnchor('Uppg 2', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'), {color : 'green'});
-    gash.areas.browse.add(app.createAnchor('Uppg 3', gash.utils.getCurrentUrl({foo : 'bar'})).setTarget('_self'));
+waxon.doGet = function(queryInfo) {
+  if (!(this.frame instanceof waxonFrame)) {
+    gash.areas.question.add('There is no frame to use. You need to install a waxon question frame.');
+    return;
   }
-  gash.areas.result.add(select);
+
+  var app = UiApp.getActiveApplication();
+  app.setTitle(this.frame.title);
+
+  var userData = {};
+  var questionId, activeQuestion, parameters;
+  userData = this.frame.resolveQuestion(userData);
+
+  if (typeof userData.activeQuestion == 'string') {
+    questionId = userData.activeQuestion;
+    userData.activeQuestion = {
+      questionId : questionId,
+      parameters : this.questions[questionId].generateParameters()
+    }
+    userData.needsSaving = true;
+  }
+  else {
+    questionId = userData.activeQuestion.questionId;
+  }
+  question = this.questions[questionId];
+  parameters = userData.activeQuestion.parameters;
+
+  var elements = question.questionElements(parameters)
+  for (var i in elements) {
+    if (typeof elements[i].setId == 'function') {
+      elements[i].setId(i);
+    }
+    if (typeof elements[i].setName == 'function') {
+      elements[i].setName(i);
+    }
+    gash.areas.question.add(elements[i]);
+  }
+
+  var elements = question.answerElements(parameters);
+  for (var i in elements) {
+    if (typeof elements[i].setId == 'function') {
+      elements[i].setId(i);
+    }
+    if (typeof elements[i].setName == 'function') {
+      elements[i].setName(i);
+    }
+    gash.areas.answer.add(elements[i]);
+  }
+
+  var answerHandler = app.createServerHandler('waxonAnswerSubmit');
+  gash.areas.answer.add('');
+  if (!question.hideAnswerButton) {
+    gash.areas.answer.add(app.createButton('Skicka', answerHandler).setId('answerSubmit'));
+  }
+  if (!question.hideSkipButton) {
+    gash.areas.answer.add(app.createButton('Hoppa över fråga', answerHandler).setId('answerSkip'), {float : 'right'});
+  }
+
+  if (!this.frame.hideHelp) {
+    var elements = question.helpElements(parameters)
+    for (var i in elements) {
+      if (typeof elements[i].setId == 'function') {
+        elements[i].setId(i);
+      }
+      if (typeof elements[i].setName == 'function') {
+        elements[i].setName(i);
+      }
+      gash.areas.learn.add(elements[i]);
+    }
+  }
+
+  if (!this.frame.hideResult) {
+    this.frame.displayResult(userData);
+  }
+
+  if (userData.needsSaving) {
+    // Do magic.
+  }
 
   gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
   gash.areas.about.add('You can find more information about waxon at ');
@@ -225,15 +266,17 @@ waxonFrame = function(id) {
   if (waxon.frame != undefined) {
     throw 'Cannot use frame ' + id + ': Another frame is already in use.';
   }
+  waxon.frame = this;
 
   // Add some required properties.
   this.id = id;
 
   // Some properties that may be overridden.
   this.title = id;
-  this.allowQuestionSkip = true;
-  this.displayHelp = true;
-  this.displayResult = true;
+  this.allowAnonymous = false;
+  this.hideSkipButton = false;
+  this.hideHelp = false;
+  this.hideResult = false;
 
   return this;
 }
@@ -275,4 +318,15 @@ waxonFrame.prototype.resolveQuestion = function(userData) {
  *   parameters {object} The parameters to use with the question.]
  */
 waxonFrame.prototype.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
+}
+
+/**
+ * Displays results to the user. Called after each answer submission and after each question build.
+ *
+ * @param {object} [userData= The full user data object. It contains the property 'gashId'
+ *   with a unique user id, the 'activeQuestion' property and the property 'needsSaving' telling
+ *   waxon if the object needs to be saved.]
+ * return {}
+ */
+waxonFrame.prototype.displayResult = function(userData) {
 }
