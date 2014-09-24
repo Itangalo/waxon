@@ -31,7 +31,13 @@ f.includedQuestions = {
     questionId : 'lala',
     group : 'Kapitel 3',
   },
+  simpleAddition : {
+    questionId : 'simpleAddition',
+    group : 'Kapitel 3',
+  },
 }
+
+f.repeatRatio = .5;
 
 // Tweaking the settings of waxon areas.
 gash.areas.question.defaults.label = 'Fråga';
@@ -68,19 +74,38 @@ var browseArea = new gashArea('browse', {
 });
 
 f.resolveQuestion = function(userData) {
-  try {
-    var focus = gash.queryParameters.focus[0];
+  // Get focus from query parameters, or default to first question in the frame's list.
+  var focus;
+  if (Array.isArray(gash.queryParameters.focus)) {
+    focus = gash.queryParameters.focus[0];
   }
-  catch(e) {
-    var focus = 'simpleAddition';
+  if (this.includedQuestions[focus] == undefined) {
+    focus = Object.keys(this.includedQuestions)[0];
   }
 
-  if (userData.activeQuestion != focus) {
+  // Special rules apply if we have a forced repeat.
+  if (userData.activeQuestion.forcedRepeat) {
+    gash.areas.browse.clear();
+    gash.areas.browse.add('Forced repeat!');
+    if (userData.activeQuestion.id == undefined) {
+      userData.activeQuestion.id = 'simpleAddition';
+      userData.activeQuestion.parameters = waxon.questions.simpleAddition.generateParameters();
+      userData.needsSaving = true;
+    }
+    return userData;
+  }
+
+  // If the active question isn't the one in focus, change the active question.
+  if (!userData.activeQuestion || userData.activeQuestion.id != focus) {
     if (userData.questions == undefined) {
       userData.questions = {};
     }
     if (userData.questions[focus] == undefined) {
-      userData.questions[focus] = {id : focus};
+      userData.questions[focus] = {};
+    }
+    // The question parameters should be stashed away, so we can use them again later if need be.
+    if (userData.questions[focus].id != focus) {
+      userData.questions[focus].id = focus;
       userData.questions[focus].parameters = waxon.questions[focus].generateParameters();
     }
     userData.activeQuestion = userData.questions[focus];
@@ -97,7 +122,42 @@ f.initialize = function(userData) {
 
   app.getElementById('learn-wrapper').setText('Information om frågetypen "' + waxon.questions[userData.activeQuestion.id].title + '"');
 
-  this.populateBrowser();
+  if (!userData.activeQuestion.forcedRepeat) {
+    this.populateBrowser();
+  }
+}
+
+f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
+  gash.areas.result.clear();
+  // First we check if the question is skipped. If so, remove active question and stashed question
+  // of this type.
+  if (responseCode == waxon.SKIPPED) {
+    gash.areas.result.add('Hoppar över frågan...');
+    this.resetActiveQuestion(userData);
+  }
+
+  if (responseCode > 0) {
+    gash.areas.result.add('Rätt! Yay you!');
+    this.resetActiveQuestion(userData);
+  }
+  else {
+    gash.areas.result.add('Fel. Sorry.');
+  }
+  if (responseMessage != '') {
+    gash.areas.result.add('Mer information: ' + responseMessage);
+  }
+  if (responseCode < 0) {
+    gash.areas.result.add('Senaste fråga: ' + questionString);
+    gash.areas.result.add('Senaste svar: ' + answerString);
+  }
+}
+
+f.resetActiveQuestion = function(userData) {
+  userData.questions[userData.activeQuestion.id] = {};
+  waxon.resetActiveQuestion(userData);
+  if (Math.random() < this.repeatRatio) {
+    userData.activeQuestion.forcedRepeat = true;
+  }
 }
 
 f.populateBrowser = function(selectedGroup) {
@@ -128,32 +188,6 @@ f.populateBrowser = function(selectedGroup) {
   // Add links to the questions in this group.
   for (var i in questionList[selectedGroup]) {
     gash.areas.browse.add(app.createAnchor(waxon.questions[i].title, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'));
-  }
-}
-
-f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
-  gash.areas.result.clear();
-  if (responseCode == waxon.SKIPPED) {
-    // Do stuff.
-    gash.areas.result.add('Hoppar över frågan...');
-    delete(userData.questions[userData.activeQuestion.id]);
-    waxon.resetActiveQuestion(userData);
-  }
-
-  if (responseCode > 0) {
-    gash.areas.result.add('Rätt! Yay you!');
-    delete(userData.questions[userData.activeQuestion.id]);
-    waxon.resetActiveQuestion(userData);
-  }
-  else {
-    gash.areas.result.add('Fel. Sorry.');
-  }
-  if (responseMessage != '') {
-    gash.areas.result.add('Mer information: ' + responseMessage);
-  }
-  if (responseCode < 0) {
-    gash.areas.result.add('Senaste fråga: ' + questionString);
-    gash.areas.result.add('Senaste svar: ' + answerString);
   }
 }
 

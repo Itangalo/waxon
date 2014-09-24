@@ -50,12 +50,13 @@ var aboutArea = new gashArea('about', {
 /**
  * Main entry point for waxon.
  */
-waxon.doGet = function(queryInfo, skipInitialize) {
+waxon.doGet = function(queryInfo, userData) {
   // Ensure that we have a frame.
   if (!(this.frame instanceof waxonFrame)) {
     gash.areas.question.add('There is no frame to use. You need to install a waxon question frame.');
     return;
   }
+  // Prepare the UI areas.
   var app = UiApp.getActiveApplication().setTitle(this.frame.title);
   gash.areas.question.clear();
   gash.areas.answer.clear();
@@ -63,7 +64,7 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   app.getElementById('result-area').setVisible(true);
 
   // Get the relevant question data.
-  var userData = this.loadUserData();
+  var userData = userData || this.loadUserData();
   var questionId, activeQuestion, parameters;
   userData = this.frame.resolveQuestion(userData);
 
@@ -80,7 +81,7 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   }
 
   // Allow the frame to react before we construct the question.
-  if (skipInitialize != true && typeof this.frame.initialize == 'function') {
+  if (typeof this.frame.initialize == 'function') {
     this.frame.initialize(userData);
   }
 
@@ -156,16 +157,46 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   }
 
   // Add some fine print for anyone interested.
-  if (skipInitialize != true) {
-    gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
-    gash.areas.about.add('You can find more information about waxon at');
-    gash.areas.about.add('https://github.com/Itangalo/waxon');
+  gash.areas.about.clear();
+  gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
+  gash.areas.about.add('You can find more information about waxon at');
+  gash.areas.about.add('https://github.com/Itangalo/waxon');
+}
+
+function waxonAnswerSubmit(eventInfo) {
+  // Give a variable name to the input in the even info, to avoid code reading insanity.
+  var input = eventInfo.parameter;
+
+  var userData = waxon.loadUserData();
+
+  var activeQuestion = userData.activeQuestion || {};
+
+  if (input.source == 'answerSkip') {
+    response = {code : waxon.SKIPPED, message : ''};
+    answerString = '-';
   }
+  else {
+    var response = waxon.questions[activeQuestion.id].evaluateAnswer(activeQuestion.parameters, input);
+    response = waxon.cleanUpResponse(response);
+    var answerString = waxon.questions[activeQuestion.id].answerToString(activeQuestion.parameters, input);
+  }
+  var questionString = waxon.questions[activeQuestion.id].questionToString(activeQuestion.parameters);
+  waxon.frame.processResponse(response.code, response.message, questionString, answerString, userData);
+
+  waxon.doGet({}, userData);
+  return UiApp.getActiveApplication();
 }
 
 waxon.loadUserData = function(user) {
   user = user || this.getUser();
-  return gash.data.loadData('waxon', user) || {};
+  var data = gash.data.loadData('waxon', user);
+  if (data == {}) {
+    data = {
+      activeQuestion : {},
+      needsSaving : true
+    };
+  }
+  return data;
 }
 
 waxon.storeUserData = function(userData, user) {
@@ -195,34 +226,6 @@ waxon.cleanUpResponse = function(response) {
     cleanResponse.code = parseInt(response);
   }
   return cleanResponse;
-}
-
-function waxonAnswerSubmit(eventInfo) {
-  // Give a variable name to the input in the even info, to avoid code reading insanity.
-  var input = eventInfo.parameter;
-
-  var userData = waxon.loadUserData();
-
-  var activeQuestion = userData.activeQuestion || {};
-
-  if (input.source == 'answerSkip') {
-    response = {code : waxon.SKIPPED, message : ''};
-    answerString = '-';
-  }
-  else {
-    var response = waxon.questions[activeQuestion.id].evaluateAnswer(activeQuestion.parameters, input);
-    response = waxon.cleanUpResponse(response);
-    var answerString = waxon.questions[activeQuestion.id].answerToString(activeQuestion.parameters, input);
-  }
-  var questionString = waxon.questions[activeQuestion.id].questionToString(activeQuestion.parameters);
-  waxon.frame.processResponse(response.code, response.message, questionString, answerString, userData);
-
-  if (userData.needsSaving) {
-    waxon.storeUserData(userData);
-  }
-
-  waxon.doGet({}, true);
-  return UiApp.getActiveApplication();
 }
 
 waxon.getFunnyMessage = function() {
