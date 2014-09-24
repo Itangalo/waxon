@@ -60,6 +60,7 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   gash.areas.question.clear();
   gash.areas.answer.clear();
   gash.areas.learn.clear();
+  app.getElementById('result-area').setVisible(true);
 
   // Get the relevant question data.
   var userData = this.loadUserData();
@@ -101,7 +102,7 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   // Populate answer area. This involves some handlers.
   var answerHandler = app.createServerHandler('waxonAnswerSubmit');
   var hideHandler = app.createClientHandler().forEventSource().setEnabled(false);
-  var processMessage = app.createLabel('Utvärderar ditt svar...').setVisible(false);
+  var processMessage = app.createLabel(this.getFunnyMessage()).setVisible(false);
   var elements = question.answerElements(parameters);
   for (var i in elements) {
     if (typeof elements[i].setId == 'function') {
@@ -116,9 +117,10 @@ waxon.doGet = function(queryInfo, skipInitialize) {
       hideHandler.forTargets(elements[i]).setEnabled(false);
     }
   }
+  gash.areas.answer.add(app.createHTML('<hr/>'));
   if (!question.hideAnswerButton) {
     var answerSubmit = app.createButton('Skicka', answerHandler).setId('answerSubmit').addClickHandler(hideHandler);
-    gash.areas.answer.add(answerSubmit);
+    gash.areas.answer.add(answerSubmit, {float : 'right'});
     hideHandler.forTargets(answerSubmit).setEnabled(false);
   }
   if (!question.hideSkipButton) {
@@ -128,6 +130,7 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   }
   gash.areas.answer.add(processMessage);
   hideHandler.forTargets(processMessage).setVisible(true);
+  hideHandler.forTargets(app.getElementById('result-area')).setVisible(false);
 
   // Check if we should populate learning and result area.
   if (!this.frame.hideHelp) {
@@ -153,9 +156,11 @@ waxon.doGet = function(queryInfo, skipInitialize) {
   }
 
   // Add some fine print for anyone interested.
-  gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
-  gash.areas.about.add('You can find more information about waxon at');
-  gash.areas.about.add('https://github.com/Itangalo/waxon');
+  if (skipInitialize != true) {
+    gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
+    gash.areas.about.add('You can find more information about waxon at');
+    gash.areas.about.add('https://github.com/Itangalo/waxon');
+  }
 }
 
 waxon.loadUserData = function(user) {
@@ -218,6 +223,28 @@ function waxonAnswerSubmit(eventInfo) {
 
   waxon.doGet({}, true);
   return UiApp.getActiveApplication();
+}
+
+waxon.getFunnyMessage = function() {
+  return gash.utils.randomSelect({
+    'Utvärderar ditt svar...' : 30,
+    'Kontrollräknar...' : 3,
+    'Kokar en kopp te...' : 1,
+    'Väntar på att teet ska svalna...' : 1,
+    'Kollar ditt svar med Google...' : 1,
+    'Startar Turing-maskinen...' : 1,
+    'Försöker tolka din handstil...' : 1,
+    'Grubblar över ditt svar...' : 2,
+    'Funderar över livet...' : 1,
+    'Anropar andra sidan...' : 1,
+    'Räknar till tio långsamt...' : 1,
+    'Utvärderar ditt svar i bas sexton...' : 1,
+    'Väntar på bättre tider...' : 1,
+    'Sjunger "Små grodorna"...' : 1,
+    'Jämför med fusklappen...' : 2,
+    'Slår upp rätt svar på nätet...' : 1,
+    'Försöker att hitta dolda budskap i ditt svar...' : 1,
+  });
 }
 
 /**
