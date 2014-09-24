@@ -24,6 +24,7 @@ waxon.dependencies = {
  * Response codes for evaluating answers.
  */
 waxon.CORRECT = 1;
+waxon.NO_NEED_TO_EVALUATE = 2;
 waxon.CLOSE = 0;
 waxon.INCORRECT = -1;
 waxon.WRONG_FORM = -2;
@@ -95,6 +96,7 @@ waxon.doGet = function(queryInfo) {
     gash.areas.question.add(elements[i]);
   }
 
+  var answerHandler = app.createServerHandler('waxonAnswerSubmit');
   var elements = question.answerElements(parameters);
   for (var i in elements) {
     if (typeof elements[i].setId == 'function') {
@@ -104,8 +106,10 @@ waxon.doGet = function(queryInfo) {
       elements[i].setName(i);
     }
     gash.areas.answer.add(elements[i]);
+    if (typeof elements[i] != 'string') {
+      answerHandler.addCallbackElement(elements[i]);
+    }
   }
-  var answerHandler = app.createServerHandler('waxonAnswerSubmit');
   gash.areas.answer.add('');
   if (!question.hideAnswerButton) {
     gash.areas.answer.add(app.createButton('Skicka', answerHandler).setId('answerSubmit'));
@@ -139,17 +143,45 @@ waxon.doGet = function(queryInfo) {
 
   // Add some fine print for anyone interested.
   gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
-  gash.areas.about.add('You can find more information about waxon at ');
+  gash.areas.about.add('You can find more information about waxon at');
   gash.areas.about.add('https://github.com/Itangalo/waxon');
 }
 
-function callback(eventInfo) {
-  if (eventInfo.parameter.source == 'add') {
-    gash.areas[eventInfo.parameter.area].add('added', {'color' : 'blue'});
+waxon.cleanUpResponse = function(response) {
+  var cleanResponse = {};
+  cleanResponse.message = response.message || '';
+  if (typeof response.code == 'number') {
+    cleanResponse.code = parseInt(response.code);
   }
-  if (eventInfo.parameter.source == 'clear') {
-    gash.areas[eventInfo.parameter.area].clear();
+  else {
+    cleanResponse.code = parseInt(response);
   }
+  return cleanResponse;
+}
+
+function waxonAnswerSubmit(eventInfo) {
+  // Give a variable name to the input in the even info, to avoid code reading insanity.
+  var input = eventInfo.parameter;
+
+  // Do magic to get user data.
+  var userData = {activeQuestion : {
+    id : 'simpleAddition',
+    parameters : {a : 2, b : 3}
+  }};
+  var activeQuestion = userData.activeQuestion;
+
+  if (input.source == 'answerSkip') {
+    response = {code : waxon.SKIPPED, message : ''};
+    answerString = '-';
+  }
+  else {
+    var response = waxon.questions[activeQuestion.id].evaluateAnswer(activeQuestion.parameters, input);
+    response = waxon.cleanUpResponse(response);
+    var answerString = waxon.questions[activeQuestion.id].answerToString(activeQuestion.parameters, input);
+  }
+  var questionString = waxon.questions[activeQuestion.id].questionToString(activeQuestion.parameters);
+  waxon.frame.processResponse(response.code, response.message, questionString, answerString, userData);
+
   return UiApp.getActiveApplication();
 }
 
