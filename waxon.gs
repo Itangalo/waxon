@@ -50,38 +50,40 @@ var aboutArea = new gashArea('about', {
 /**
  * Main entry point for waxon.
  */
-waxon.doGet = function(queryInfo) {
+waxon.doGet = function(queryInfo, skipInitialize) {
   // Ensure that we have a frame.
   if (!(this.frame instanceof waxonFrame)) {
     gash.areas.question.add('There is no frame to use. You need to install a waxon question frame.');
     return;
   }
-  var app = UiApp.getActiveApplication();
-  app.setTitle(this.frame.title);
+  var app = UiApp.getActiveApplication().setTitle(this.frame.title);
+  gash.areas.question.clear();
+  gash.areas.answer.clear();
+  gash.areas.learn.clear();
 
   // Get the relevant question data.
-  var userData = {};
+  var userData = this.loadUserData();
   var questionId, activeQuestion, parameters;
   userData = this.frame.resolveQuestion(userData);
 
   if (typeof userData.activeQuestion == 'string') {
     questionId = userData.activeQuestion;
     userData.activeQuestion = {
-      questionId : questionId,
+      id : questionId,
       parameters : this.questions[questionId].generateParameters()
     }
     userData.needsSaving = true;
   }
   else {
-    questionId = userData.activeQuestion.questionId;
+    questionId = userData.activeQuestion.id;
   }
 
   // Allow the frame to react before we construct the question.
-  if (typeof this.frame.initialize == 'function') {
+  if (skipInitialize != true && typeof this.frame.initialize == 'function') {
     this.frame.initialize(userData);
   }
 
-  // Populate question area and answer area.
+  // Populate question area.
   var question = this.questions[questionId];
   parameters = userData.activeQuestion.parameters;
 
@@ -96,7 +98,10 @@ waxon.doGet = function(queryInfo) {
     gash.areas.question.add(elements[i]);
   }
 
+  // Populate answer area. This involves some handlers.
   var answerHandler = app.createServerHandler('waxonAnswerSubmit');
+  var hideHandler = app.createClientHandler().forEventSource().setEnabled(false);
+  var processMessage = app.createLabel('Utvärderar ditt svar...').setVisible(false);
   var elements = question.answerElements(parameters);
   for (var i in elements) {
     if (typeof elements[i].setId == 'function') {
@@ -108,15 +113,21 @@ waxon.doGet = function(queryInfo) {
     gash.areas.answer.add(elements[i]);
     if (typeof elements[i] != 'string') {
       answerHandler.addCallbackElement(elements[i]);
+      hideHandler.forTargets(elements[i]).setEnabled(false);
     }
   }
-  gash.areas.answer.add('');
   if (!question.hideAnswerButton) {
-    gash.areas.answer.add(app.createButton('Skicka', answerHandler).setId('answerSubmit'));
+    var answerSubmit = app.createButton('Skicka', answerHandler).setId('answerSubmit').addClickHandler(hideHandler);
+    gash.areas.answer.add(answerSubmit);
+    hideHandler.forTargets(answerSubmit).setEnabled(false);
   }
   if (!question.hideSkipButton) {
-    gash.areas.answer.add(app.createButton('Hoppa över fråga', answerHandler).setId('answerSkip'), {float : 'right'});
+    var answerSkip = app.createButton('Hoppa över fråga', answerHandler).setId('answerSkip').addClickHandler(hideHandler);
+    gash.areas.answer.add(answerSkip, {float : 'right'});
+    hideHandler.forTargets(answerSkip).setEnabled(false);
   }
+  gash.areas.answer.add(processMessage);
+  hideHandler.forTargets(processMessage).setVisible(true);
 
   // Check if we should populate learning and result area.
   if (!this.frame.hideHelp) {
@@ -138,13 +149,35 @@ waxon.doGet = function(queryInfo) {
 
   // If the userData needs saving, save it. (It probably does.)
   if (userData.needsSaving) {
-    // Do magic.
+    this.storeUserData(userData);
   }
 
   // Add some fine print for anyone interested.
   gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
   gash.areas.about.add('You can find more information about waxon at');
   gash.areas.about.add('https://github.com/Itangalo/waxon');
+}
+
+waxon.loadUserData = function(user) {
+  user = user || this.getUser();
+  return gash.data.loadData('waxon', user) || {};
+}
+
+waxon.storeUserData = function(userData, user) {
+  user = user || this.getUser();
+  userData.needsSaving = false;
+  gash.data.storeData('waxon', user, userData);
+}
+
+waxon.resetActiveQuestion = function(userData) {
+  if (userData.activeQuestion) {
+    userData.activeQuestion = {};
+    userData.needsSaving = true;
+  }
+}
+
+waxon.getUser = function() {
+  return Session.getActiveUser().getEmail();
 }
 
 waxon.cleanUpResponse = function(response) {
@@ -163,12 +196,9 @@ function waxonAnswerSubmit(eventInfo) {
   // Give a variable name to the input in the even info, to avoid code reading insanity.
   var input = eventInfo.parameter;
 
-  // Do magic to get user data.
-  var userData = {activeQuestion : {
-    id : 'simpleAddition',
-    parameters : {a : 2, b : 3}
-  }};
-  var activeQuestion = userData.activeQuestion;
+  var userData = waxon.loadUserData();
+
+  var activeQuestion = userData.activeQuestion || {};
 
   if (input.source == 'answerSkip') {
     response = {code : waxon.SKIPPED, message : ''};
@@ -182,6 +212,11 @@ function waxonAnswerSubmit(eventInfo) {
   var questionString = waxon.questions[activeQuestion.id].questionToString(activeQuestion.parameters);
   waxon.frame.processResponse(response.code, response.message, questionString, answerString, userData);
 
+  if (userData.needsSaving) {
+    waxon.storeUserData(userData);
+  }
+
+  waxon.doGet({}, true);
   return UiApp.getActiveApplication();
 }
 
@@ -376,7 +411,7 @@ waxonFrame.prototype.resolveQuestion = function(userData) {
  *   with a unique user id, the 'activeQuestion' property and the property 'needsSaving' telling
  *   waxon if the object needs to be saved.]
  * return {object} [An object which must contain the following properties:
- *   questionId {string} The ID of the question.
+ *   id {string} The ID of the question.
  *   parameters {object} The parameters to use with the question.]
  */
 waxonFrame.prototype.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {

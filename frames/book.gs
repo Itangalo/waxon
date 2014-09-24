@@ -14,26 +14,21 @@ var f = new waxonFrame('book');
 
 f.title = 'En bok med mattefrågor';
 
-var baba = new waxonQuestion('baba');
-var bibi = baba.tweak('bibi', {}, {title : 'Bibi'});
-var lolo = baba.tweak('lolo', {}, {title : 'Lolo'});
-var lala = bibi.tweak('lala', {}, {title : 'Lala'});
-
 f.includedQuestions = {
   baba : {
-    questionId : 'dev',
+    questionId : 'baba',
     group : 'Kapitel 1',
   },
   bibi : {
-    questionId : 'dev',
+    questionId : 'bibi',
     group : 'Kapitel 1',
   },
   lolo : {
-    questionId : 'dev',
+    questionId : 'lolo',
     group : 'Kapitel 2',
   },
   lala : {
-    questionId : 'dev',
+    questionId : 'lala',
     group : 'Kapitel 3',
   },
 }
@@ -73,16 +68,26 @@ var browseArea = new gashArea('browse', {
 });
 
 f.resolveQuestion = function(userData) {
+  if (userData.activeQuestion == undefined || userData.activeQuestion.parameters == undefined) {
+    if (gash.queryParameters.focus != undefined && waxon.questions[gash.queryParameters.focus] instanceof waxonQuestion) {
+      userData.activeQuestion = gash.queryParameters.focus[0];
+    }
+    else {
+      userData.activeQuestion = 'simpleAddition';
+    }
+    userData.needsSaving = true;
+  }
+  return userData;
+}
+
+f.initialize = function(userData) {
   var app = UiApp.getActiveApplication();
   // Alternative images: http://ibin.co/1bKBH71X3MKU (open book), http://ibin.co/1bKDMgOUU6WU (open book 960 px)
   // http://ibin.co/1bK3afRxpjiF (book pages), http://ibin.co/1bK70yYxM42P (square lined paper)
   app.setStyleAttribute('backgroundImage', 'url("http://ibin.co/1bKDMgOUU6WU")').setStyleAttribute('backgroundRepeat', 'no-repeat').setHeight(900).setWidth(900).setStyleAttribute('overflow', 'auto');
 
-  userData.activeQuestion = 'simpleAddition';
-  return userData;
-}
+  app.getElementById('learn-wrapper').setText('Information om frågetypen "' + waxon.questions[userData.activeQuestion.id].title + '"');
 
-f.initialize = function(userData) {
   this.populateBrowser();
 }
 
@@ -122,11 +127,12 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
   if (responseCode == waxon.SKIPPED) {
     // Do stuff.
     gash.areas.result.add('Hoppar över frågan...');
-    return;
+    waxon.resetActiveQuestion(userData);
   }
 
   if (responseCode > 0) {
     gash.areas.result.add('Rätt! Yay you!');
+    waxon.resetActiveQuestion(userData);
   }
   else {
     gash.areas.result.add('Fel. Sorry.');
