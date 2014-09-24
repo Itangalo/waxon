@@ -78,7 +78,7 @@ f.resolveQuestion = function(userData) {
   // http://ibin.co/1bK3afRxpjiF (book pages), http://ibin.co/1bK70yYxM42P (square lined paper)
   app.setStyleAttribute('backgroundImage', 'url("http://ibin.co/1bKDMgOUU6WU")').setStyleAttribute('backgroundRepeat', 'no-repeat').setHeight(900).setWidth(900).setStyleAttribute('overflow', 'auto');
 
-  userData.activeQuestion = 'dev';
+  userData.activeQuestion = 'simpleAddition';
   return userData;
 }
 
@@ -118,6 +118,26 @@ f.populateBrowser = function(selectedGroup) {
 }
 
 f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
+  gash.areas.result.clear();
+  if (responseCode == waxon.SKIPPED) {
+    // Do stuff.
+    gash.areas.result.add('Hoppar över frågan...');
+    return;
+  }
+
+  if (responseCode > 0) {
+    gash.areas.result.add('Rätt! Yay you!');
+  }
+  else {
+    gash.areas.result.add('Fel. Sorry.');
+  }
+  if (responseMessage != '') {
+    gash.areas.result.add('Mer information: ' + responseMessage);
+  }
+  if (responseCode < 0) {
+    gash.areas.result.add('Senaste fråga: ' + questionString);
+    gash.areas.result.add('Senaste svar: ' + answerString);
+  }
 }
 
 function bookGroupSelectHandler(eventInfo) {
