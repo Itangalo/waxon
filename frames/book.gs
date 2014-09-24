@@ -68,13 +68,22 @@ var browseArea = new gashArea('browse', {
 });
 
 f.resolveQuestion = function(userData) {
-  if (userData.activeQuestion == undefined || userData.activeQuestion.parameters == undefined) {
-    if (gash.queryParameters.focus != undefined && waxon.questions[gash.queryParameters.focus] instanceof waxonQuestion) {
-      userData.activeQuestion = gash.queryParameters.focus[0];
+  try {
+    var focus = gash.queryParameters.focus[0];
+  }
+  catch(e) {
+    var focus = 'simpleAddition';
+  }
+
+  if (userData.activeQuestion != focus) {
+    if (userData.questions == undefined) {
+      userData.questions = {};
     }
-    else {
-      userData.activeQuestion = 'simpleAddition';
+    if (userData.questions[focus] == undefined) {
+      userData.questions[focus] = {id : focus};
+      userData.questions[focus].parameters = waxon.questions[focus].generateParameters();
     }
+    userData.activeQuestion = userData.questions[focus];
     userData.needsSaving = true;
   }
   return userData;
@@ -127,11 +136,13 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
   if (responseCode == waxon.SKIPPED) {
     // Do stuff.
     gash.areas.result.add('Hoppar över frågan...');
+    delete(userData.questions[userData.activeQuestion.id]);
     waxon.resetActiveQuestion(userData);
   }
 
   if (responseCode > 0) {
     gash.areas.result.add('Rätt! Yay you!');
+    delete(userData.questions[userData.activeQuestion.id]);
     waxon.resetActiveQuestion(userData);
   }
   else {
