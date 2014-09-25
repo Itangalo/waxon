@@ -84,6 +84,7 @@ f.resolveQuestion = function(userData) {
   }
 
   // Special rules apply if we have a forced repeat.
+  // @TODO: Make the forced repeat select a question in a better way.
   if (userData.activeQuestion.forcedRepeat) {
     gash.areas.browse.clear();
     gash.areas.browse.add('Forced repeat!');
@@ -94,15 +95,10 @@ f.resolveQuestion = function(userData) {
     }
     return userData;
   }
+  this.assureUserDataStructure(userData, focus);
 
   // If the active question isn't the one in focus, change the active question.
   if (!userData.activeQuestion || userData.activeQuestion.id != focus) {
-    if (userData.questions == undefined) {
-      userData.questions = {};
-    }
-    if (userData.questions[focus] == undefined) {
-      userData.questions[focus] = {};
-    }
     // The question parameters should be stashed away, so we can use them again later if need be.
     if (userData.questions[focus].id != focus) {
       userData.questions[focus].id = focus;
@@ -129,6 +125,10 @@ f.initialize = function(userData) {
 
 f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
   gash.areas.result.clear();
+  var id = userData.activeQuestion.id;
+  userData.result[id].track.push(responseCode);
+  userData.result[id].count++;
+
   // First we check if the question is skipped. If so, remove active question and stashed question
   // of this type.
   if (responseCode == waxon.SKIPPED) {
@@ -138,6 +138,7 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
 
   if (responseCode > 0) {
     gash.areas.result.add('Rätt! Yay you!');
+    userData.result[id].correct++;
     this.resetActiveQuestion(userData);
   }
   else {
@@ -150,6 +151,8 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
     gash.areas.result.add('Senaste fråga: ' + questionString);
     gash.areas.result.add('Senaste svar: ' + answerString);
   }
+
+  gash.areas.result.add('Av den här frågetypen har du fått ' + userData.result[id].correct + ' gånger av ' + userData.result[id].count + '.');
 }
 
 f.resetActiveQuestion = function(userData) {
@@ -157,6 +160,32 @@ f.resetActiveQuestion = function(userData) {
   waxon.resetActiveQuestion(userData);
   if (Math.random() < this.repeatRatio) {
     userData.activeQuestion.forcedRepeat = true;
+  }
+}
+
+f.assureUserDataStructure = function(userData, focus) {
+  if (userData.questions == undefined) {
+    userData.questions = {};
+    userData.needsSaving = true;
+  }
+  if (userData.questions[focus] == undefined) {
+    userData.questions[focus] = {};
+    userData.needsSaving = true;
+  }
+  if (userData.result == undefined) {
+    userData.result = {};
+    userData.needsSaving = true;
+  }
+  if (userData.result[focus] == undefined) {
+    userData.result[focus] = {
+      count : 0,
+      track : [],
+      correct : 0,
+      lastBuild : '',
+      lastAttempt : '',
+      lastCorrect : false,
+    };
+    userData.needsSaving = true;
   }
 }
 
