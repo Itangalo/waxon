@@ -51,9 +51,13 @@ var aboutArea = new gashArea('about', {
  * Main entry point for waxon.
  */
 waxon.doGet = function(queryInfo, userData) {
-  // Ensure that we have a frame.
+  // Ensure that we have a frame and that it may be used.
   if (!(this.frame instanceof waxonFrame)) {
     gash.areas.question.add('There is no frame to use. You need to install a waxon question frame.');
+    return;
+  }
+  if (this.getUser() == '' && !this.frame.allowAnonymous) {
+    gash.areas.question.add('You must be logged in to use this waxon frame. Please log in to Google in another tab and reload this page.');
     return;
   }
   // Prepare the UI areas.
@@ -158,8 +162,9 @@ waxon.doGet = function(queryInfo, userData) {
 
   // Add some fine print for anyone interested.
   gash.areas.about.clear();
-  gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.');
-  gash.areas.about.add('You can find more information about waxon at');
+  gash.areas.about.add('You are logged in as ' + this.getUser() + '.  ');
+  gash.areas.about.add('waxon is an open source framework for machine created and evaluated questions, used in Google Apps Script.  ');
+  gash.areas.about.add('You can find more information about waxon at ');
   gash.areas.about.add('https://github.com/Itangalo/waxon');
 }
 
@@ -190,7 +195,7 @@ function waxonAnswerSubmit(eventInfo) {
 waxon.loadUserData = function(user) {
   user = user || this.getUser();
   var data = gash.data.loadData('waxon', user);
-  if (data == {}) {
+  if (data == null || data == {}) {
     data = {
       activeQuestion : {},
       needsSaving : true
@@ -236,6 +241,7 @@ waxon.getFunnyMessage = function() {
     'Väntar på att teet ska svalna...' : 1,
     'Kollar ditt svar med Google...' : 1,
     'Startar Turing-maskinen...' : 1,
+    'Turing-testar ditt svar...' : 1,
     'Försöker tolka din handstil...' : 1,
     'Grubblar över ditt svar...' : 2,
     'Funderar över livet...' : 1,
@@ -321,7 +327,7 @@ waxonQuestion.prototype.questionToString = function(parameters) {
  */
 waxonQuestion.prototype.answerElements = function(parameters) {
   return {
-    label : 'Svar',
+    label : 'Svar:',
     answer : UiApp.getActiveApplication().createTextBox()
   };
 }
