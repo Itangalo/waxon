@@ -13,31 +13,34 @@
 var f = new waxonFrame('book');
 
 f.title = 'En bok med mattefrågor';
+f.trackLength = 10;
+f.trackRequired = 7;
 
 f.includedQuestions = {
-  baba : {
-    questionId : 'baba',
-    group : 'Kapitel 1',
+  multiplyingBinomials1 : {
+    questionId : 'multiplyingBinomials1',
+    group : 'Andragradsuttryck',
   },
-  bibi : {
-    questionId : 'bibi',
-    group : 'Kapitel 1',
+  multiplyingBinomials2 : {
+    questionId : 'multiplyingBinomials2',
+    group : 'Andragradsuttryck',
   },
-  lolo : {
-    questionId : 'lolo',
-    group : 'Kapitel 2',
+  squaresAndConjugates1 : {
+    questionId : 'squaresAndConjugates1',
+    group : 'Andragradsuttryck',
   },
-  lala : {
-    questionId : 'lala',
-    group : 'Kapitel 3',
+  squaresAndConjugates2 : {
+    questionId : 'squaresAndConjugates2',
+    group : 'Andragradsuttryck',
   },
-  simpleAddition : {
-    questionId : 'simpleAddition',
-    group : 'Kapitel 3',
+  multiplyingBinomials3 : {
+    questionId : 'multiplyingBinomials3',
+    group : 'Andragradsuttryck',
+    isImportant : true,
   },
 }
 
-f.repeatRatio = .5;
+f.repeatRatio = 0;
 
 // Tweaking the settings of waxon areas.
 gash.areas.question.defaults.label = 'Fråga';
@@ -75,14 +78,9 @@ var browseArea = new gashArea('browse', {
 
 f.resolveQuestion = function(userData) {
   // Get focus from query parameters, or default to first question in the frame's list.
-  var focus;
-  if (Array.isArray(gash.queryParameters.focus)) {
-    focus = gash.queryParameters.focus[0];
-  }
-  if (this.includedQuestions[focus] == undefined) {
-    focus = Object.keys(this.includedQuestions)[0];
-  }
+  var focus = this.getFocus(userData);
 
+  this.assureUserDataStructure(userData, focus);
   // Special rules apply if we have a forced repeat.
   // @TODO: Make the forced repeat select a question in a better way.
   if (userData.activeQuestion.forcedRepeat) {
@@ -95,7 +93,6 @@ f.resolveQuestion = function(userData) {
     }
     return userData;
   }
-  this.assureUserDataStructure(userData, focus);
 
   // If the active question isn't the one in focus, change the active question.
   if (!userData.activeQuestion || userData.activeQuestion.id != focus) {
@@ -107,6 +104,37 @@ f.resolveQuestion = function(userData) {
     userData.activeQuestion = userData.questions[focus];
     userData.needsSaving = true;
   }
+
+  var result = [];
+  for (var i in userData.result[focus].track) {
+    if (userData.result[focus].track[i] > 0) {
+      result.push('R');
+    }
+    else {
+      result.push('F');
+    }
+  }
+  gash.areas.result.add('På de ' + this.trackLength + ' senaste svaren har du haft ' + userData.result[focus].correct + ' rätt: ' + result.join('|') + '  ');
+  if (this.includedQuestions[focus].isImportant || 1 == 1) {
+    var important = '<strong>Det här är en viktig uppgift</strong>, vilket betyder att du behöver få minst ' + this.trackRequired + ' rätt. ';
+    if (userData.result[focus].isFulfilledNow) {
+      important += 'Det har du lyckats med!  ';
+    }
+    else if (userData.result[focus].hasBeenFulfilled) {
+      important += 'Du har tidigare haft så många rätt, vilket läraren kommer att se.  ';
+    }
+    gash.areas.result.add(important);
+  }
+
+  gash.areas.result.add('Totalt har du svarat ' + userData.result[focus].count + ' gånger på uppgifter av den här typen.  ');
+
+  gash.areas.result.add('<hr/>');
+  gash.areas.result.add('Senaste fråga: ' + userData.result[focus].lastQuestion + '  ');
+  gash.areas.result.add('Senaste svar: ' + userData.result[focus].lastAnswer);
+  if (userData.result[focus].lastCorrect) {
+    gash.areas.result.add(' (rätt)');
+  }
+
   return userData;
 }
 
@@ -125,9 +153,29 @@ f.initialize = function(userData) {
 
 f.processResponse = function(responseCode, responseMessage, questionString, answerString, userData) {
   gash.areas.result.clear();
+  userData.needsSaving = true;
   var id = userData.activeQuestion.id;
+  userData.result[id].lastQuestion = questionString;
+  userData.result[id].lastAnswer = answerString;
   userData.result[id].track.push(responseCode);
+  while (userData.result[id].track.length > this.trackLength) {
+    userData.result[id].track.shift();
+  }
+  userData.result[id].correct = 0;
+  for (var i in userData.result[id].track) {
+    if (userData.result[id].track[i] > 0) {
+      userData.result[id].correct++;
+    }
+  }
+  if (userData.result[id].correct >= this.trackRequired) {
+    userData.result[id].isFulfilledNow = true;
+    userData.result[id].hasBeenFulfilled = true;
+  }
+  else {
+    userData.result[id].isFulfilledNow = false;
+  }
   userData.result[id].count++;
+  userData.result[id].lastAttempt = new Date().toString();
 
   // First we check if the question is skipped. If so, remove active question and stashed question
   // of this type.
@@ -136,23 +184,42 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
     this.resetActiveQuestion(userData);
   }
 
+  userData.result[id].lastCorrect = false;
   if (responseCode > 0) {
+    userData.result[id].lastCorrect = true;
     gash.areas.result.add('Rätt! Yay you!');
     userData.result[id].correct++;
     this.resetActiveQuestion(userData);
   }
-  else {
+  else if (responseCode != waxon.SKIPPED) {
     gash.areas.result.add('Fel. Sorry.');
   }
   if (responseMessage != '') {
-    gash.areas.result.add('Mer information: ' + responseMessage);
+    gash.areas.result.add('Mer information: <strong>' + responseMessage + '</strong>');
   }
-  if (responseCode < 0) {
-    gash.areas.result.add('Senaste fråga: ' + questionString);
-    gash.areas.result.add('Senaste svar: ' + answerString);
-  }
+  gash.areas.result.add('<hr/>');
+}
 
-  gash.areas.result.add('Av den här frågetypen har du fått ' + userData.result[id].correct + ' gånger av ' + userData.result[id].count + '.');
+f.getFocus = function(userData) {
+  var focus;
+  // First check if there is a focus set in query parameters. This is only true on new page loads.
+  if (Array.isArray(gash.queryParameters.focus)) {
+    focus = gash.queryParameters.focus[0];
+  }
+  // If no focus was found in query parameters, try using last set focus.
+  if (focus == undefined) {
+    focus = userData.focus;
+  }
+  // If this doesn't work, use the first question in the frame.
+  if (this.includedQuestions[focus] == undefined) {
+    focus = Object.keys(this.includedQuestions)[0];
+  }
+  // Remember the focus.
+  if (userData.focus != focus) {
+    userData.focus = focus;
+    userData.needsSaving = true;
+  }
+  return focus;
 }
 
 f.resetActiveQuestion = function(userData) {
@@ -164,6 +231,13 @@ f.resetActiveQuestion = function(userData) {
 }
 
 f.assureUserDataStructure = function(userData, focus) {
+  if (userData == null) {
+    userData = {};
+  }
+  if (userData.activeQuestion == undefined) {
+    userData.activeQuestion = {};
+    userData.needsSaving = true;
+  }
   if (userData.questions == undefined) {
     userData.questions = {};
     userData.needsSaving = true;
@@ -183,7 +257,11 @@ f.assureUserDataStructure = function(userData, focus) {
       correct : 0,
       lastBuild : '',
       lastAttempt : '',
+      lastQuestion : '(detta är första frågan)',
+      lastAnswer : '(detta är första frågan)',
       lastCorrect : false,
+      hasBeenFulfilled : false,
+      isFulfilledNow : false,
     };
     userData.needsSaving = true;
   }
@@ -193,15 +271,10 @@ f.populateBrowser = function(selectedGroup) {
   gash.areas.browse.clear();
   // This function can be called from a handler, but also on page callback where we have no provided
   // selected group. These checks verifies that we have a valid selectedGroup.
+  var focus = this.getFocus(waxon.loadUserData());
   var questionList = gash.utils.groupByProperty(this.includedQuestions, 'group');
   if (questionList[selectedGroup] == undefined) {
-    // See if the query parameters focuses on a question in a particular group. Otherwise, select first group.
-    if (gash.queryParameters.focus != undefined && this.includedQuestions[gash.queryParameters.focus] != undefined) {
-      selectedGroup = this.includedQuestions[gash.queryParameters.focus].group;
-    }
-    else {
-      selectedGroup = this.includedQuestions[Object.keys(this.includedQuestions)[0]].group;
-    }
+    selectedGroup = this.includedQuestions[focus].group;
   }
 
   // Build a select list with the question groups.
@@ -214,9 +287,20 @@ f.populateBrowser = function(selectedGroup) {
   groupSelect.setSelectedIndex(Object.keys(questionList).indexOf(selectedGroup));
   gash.areas.browse.add(groupSelect);
 
+  var styles, label;
   // Add links to the questions in this group.
   for (var i in questionList[selectedGroup]) {
-    gash.areas.browse.add(app.createAnchor(waxon.questions[i].title, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'));
+    styles = {};
+    if (i == focus) {
+      styles.fontWeight = 'bold';
+    }
+    if (this.includedQuestions[i].isImportant) {
+      label = waxon.questions[i].shortTitle + '*';
+    }
+    else {
+      label = waxon.questions[i].shortTitle;
+    }
+    gash.areas.browse.add(app.createAnchor(label, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'), styles);
   }
 }
 
