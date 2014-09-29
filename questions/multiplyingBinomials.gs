@@ -7,6 +7,11 @@ var q = new waxonQuestion('multiplyingBinomialsBase');
 
 q.title = 'Multiplicera parentesuttryck';
 
+q.dependencies = {
+  math : {apiVersion : 1, subVersion : 1},
+  algebra : {apiVersion : 1, subVersion : 1},
+};
+
 q.defaults = new configObject({
   'type' : gash.utils.randomSelect({binomial : 2, square : 1, conjugate : 1}),
   'min' : -3,
@@ -18,9 +23,16 @@ q.defaults = new configObject({
 
 q.generateParameters = function(options) {
   options = this.defaults.overwriteWith(options);
+  var a = options.a;
 
-  var expression = '', latex = '';
+  var expression = '', plainText = '', latex = '';
+  // Load any coefficients from the options, then build the first binomial.
+  options.a = options.a1;
+  options.b = options.b1;
   var bin1 = gash.math.randomBinomial(options.min, options.max, options);
+  // Do the same with the second binomial.
+  options.a = options.a2;
+  options.b = options.b2;
   var bin2 = gash.math.randomBinomial(options.min, options.max, options);
   // If the expression should be a conjugate, we need to adjust the second binomial.
   if (options.type == 'conjugate') {
@@ -37,17 +49,22 @@ q.generateParameters = function(options) {
   switch (options.type) {
     case 'binomial' :
     case 'conjugate' :
-      expression = options.a + '(' + bin1.expression + ')*(' + bin2.expression + ')';
-      latex = gash.math.latexFraction(options.a, {skipOnes : true}) + '\\left (' + bin1.latex + '\\right )\\left (' + bin2.latex + '\\right )';
+      expression = a + '(' + bin1.expression + ')*(' + bin2.expression + ')';
+      plainText = '(' + bin1.plainText + ')*(' + bin2.plainText + ')';
+      latex = gash.math.latexFraction(a, {skipOnes : true}) + '\\left (' + bin1.latex + '\\right )\\left (' + bin2.latex + '\\right )';
       break;
     case 'square' :
-      expression = options.a + '(' + bin1.expression + ')*(' + bin1.expression + ')';
-      latex = gash.math.latexFraction(options.a, {skipOnes : true}) + '\\left (' + bin1.latex + '\\right )^2';
+      expression = a + '(' + bin1.expression + ')*(' + bin1.expression + ')';
+      plainText = '(' + bin1.plainText + ')²';
+      latex = gash.math.latexFraction(a, {skipOnes : true}) + '\\left (' + bin1.latex + '\\right )^2';
       break;
   }
+  a = gash.math.findFraction(a, options.maxDenominator);
+  plainText = a.noOnes + plainText;
 
   return {
     expression : expression,
+    plainText : plainText,
     latex : latex,
     variable : options.variable,
   };
@@ -61,22 +78,22 @@ q.questionElements = function(parameters) {
 };
 
 q.questionToString = function(parameters) {
-  return 'Utveckla ' + parameters.expression;
+  return 'Utveckla ' + parameters.plainText;
 }
 
 q.evaluateAnswer = function(parameters, input) {
   var result = gash.algebra.compareExpressions(parameters.expression, input.answer, parameters.variable);
 
-  if (gash.math.numberOfTerms(input.answer) > 3 ) {
-    return {
-      code : Math.min(result, waxon.WRONG_FORM),
-      message : 'Ditt uttryck har fler än tre termer. Se om du kan förenkla det (eller om du räknat fel).',
-    };
-  }
   if (input.answer.indexOf('(') > -1) {
     return {
       code : Math.min(result, waxon.WRONG_FORM),
       message : 'Utvecklade uttryck bör inte innehålla parenteser.',
+    };
+  }
+  if (gash.math.numberOfTerms(input.answer) > 3 ) {
+    return {
+      code : Math.min(result, waxon.WRONG_FORM),
+      message : 'Ditt uttryck har fler än tre termer. Se om du kan förenkla det (eller om du räknat fel).',
     };
   }
   if (input.answer.indexOf(parameters.variable + '^2') == -1) {
@@ -108,63 +125,48 @@ q.helpElements = function(parameters) {
   return {};
 }
 
-
-var t = q.tweak('multiplyingBinomials1');
-t.title = 'Multiplicera parentesuttryck 1';
-t.shortTitle = 'Parenteser 1';
-t.defaults = new configObject({
-  'type' : 'binomial',
-  'min' : -3,
-  'max' : 3,
-  'maxDenominator' : 1,
-  'a' : gash.utils.randomInt(-1, 1, [0]),
-  'variable' : gash.utils.randomSelect({x : 4, y : 1, t : 1, s : 1})
-});
-
-var t = q.tweak('multiplyingBinomials2');
-t.title = 'Multiplicera parentesuttryck 2';
-t.shortTitle = 'Parenteser 2';
-t.defaults = new configObject({
-  'type' : gash.utils.randomSelect({binomial : 5, square : 1, conjugate : 3}),
-  'min' : -3,
-  'max' : 3,
-  'maxDenominator' : 2,
-  'a' : gash.utils.randomInt(-6, 6, [0]) / 2,
-  'variable' : gash.utils.randomSelect({x : 4, y : 1, t : 1, s : 1})
-});
-
-var t = q.tweak('squaresAndConjugates1');
-t.title = 'Kvadrerings- och konjugatreglerna 1';
-t.shortTitle = 'Kvadrat och konjugat 1';
-t.defaults = new configObject({
-  'type' : gash.utils.randomSelect({binomial : 1, square : 3, conjugate : 3}),
-  'min' : -3,
-  'max' : 3,
-  'maxDenominator' : 1,
-  'a' : gash.utils.randomInt(-6, 6, [0]) / 2,
-  'variable' : gash.utils.randomSelect({x : 4, y : 1, t : 1, s : 1})
-});
-
-var t = q.tweak('squaresAndConjugates2');
-t.title = 'Kvadrerings- och konjugatreglerna 2';
-t.shortTitle = 'Kvadrat och konjugat 2';
-t.defaults = new configObject({
-  'type' : gash.utils.randomSelect({binomial : 1, square : 3, conjugate : 3}),
-  'min' : -10,
-  'max' : 10,
-  'maxDenominator' : 1,
-  'a' : gash.utils.randomInt(-6, 6, [0]) / 2,
-  'variable' : gash.utils.randomSelect({x : 4, y : 1, t : 1, s : 1})
-});
-
-var t = q.tweak('multiplyingBinomials3');
-t.title = 'Blandad parentesmultiplikation';
-t.shortTitle = 'Parentesmultiplikation';
-t.defaults = new configObject({
-  'type' : gash.utils.randomSelect({binomial : 2, square : 1, conjugate : 1}),
-  'min' : -3,
-  'max' : 3,
-  'maxDenominator' : 2,
-  'a' : gash.utils.randomInt(-6, 6, [0]) / 3,
-  'variable' : gash.utils.randomSelect({x : 4, y : 1, t : 1, s : 1})
-});
+q.tests = {
+  correctBuild : function() {
+    var parameters = waxon.questions.multiplyingBinomialsBase.generateParameters({
+      type : 'binomial',
+      variable : 'x',
+      a : 1,
+      a1 : 3,
+      b1 : 0.5,
+      a2 : -1,
+      b2 : 1,
+      mode : 'straight'
+    });
+    if (parameters.plainText != '(3x+1/2)*(-x+1)') {
+      throw 'Parameters are not built correctly.';
+    }
+  },
+  correctEvaluation : function() {
+    var parameters = waxon.questions.multiplyingBinomialsBase.generateParameters({
+      type : 'binomial',
+      variable : 'x',
+      a : 1,
+      a1 : 3,
+      b1 : 0.5,
+      a2 : -1,
+      b2 : 1,
+      mode : 'straight'
+    });
+    var input = {answer : '-3x^2+2,5x+1/2'};
+    if (waxon.questions.multiplyingBinomialsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
+      throw 'Correct answer is not evaluated as correct.';
+    }
+    input = {answer : '2,5x+1/2-3x^2'};
+    if (waxon.questions.multiplyingBinomialsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
+      throw 'Reordering correct terms confuses the evaluation.';
+    }
+    input = {answer : '2,5x+1/2-3x^2'};
+    if (waxon.questions.multiplyingBinomialsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
+      throw 'Reordering correct terms confuses the evaluation.';
+    }
+    input = {answer : '2,5x+0.49-3x^2'};
+    if (waxon.questions.multiplyingBinomialsBase.evaluateAnswer(parameters, input) == waxon.CORRECT) {
+      throw 'Wrong answer is evaluated as correct.';
+    }
+  }
+};
