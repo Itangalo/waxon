@@ -107,7 +107,7 @@ f.resolveQuestion = function(userData) {
     }
   }
   gash.areas.result.add('På de ' + this.trackLength + ' senaste svaren har du haft ' + userData.result[focus].correct + ' rätt: ' + result.join('|') + '  ');
-  if (this.includedQuestions[focus].isImportant || 1 == 1) {
+  if (this.includedQuestions[focus].isImportant) {
     var important = '<strong>Det här är en viktig uppgift</strong>, vilket betyder att du behöver få minst ' + this.trackRequired + ' rätt. ';
     if (userData.result[focus].isFulfilledNow) {
       important += 'Det har du lyckats med!  ';
