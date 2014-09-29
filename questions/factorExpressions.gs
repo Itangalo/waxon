@@ -7,7 +7,7 @@ var q = new waxonQuestion('factorExpressionsBase');
 q.title = 'Faktorisera algebraiska uttryck';
 
 q.dependencies = {
-  math : {apiVersion : 1, subVersion : 1},
+  math : {apiVersion : 1, subVersion : 2},
   algebra : {apiVersion : 1, subVersion : 1},
   utils : {apiVersion : 1, subVersion : 2},
 };

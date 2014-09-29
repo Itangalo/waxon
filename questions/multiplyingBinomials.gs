@@ -8,7 +8,7 @@ var q = new waxonQuestion('multiplyingBinomialsBase');
 q.title = 'Multiplicera parentesuttryck';
 
 q.dependencies = {
-  math : {apiVersion : 1, subVersion : 1},
+  math : {apiVersion : 1, subVersion : 2},
   algebra : {apiVersion : 1, subVersion : 1},
 };
 
