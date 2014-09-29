@@ -16,9 +16,15 @@ waxon.apiVersion = 2;
 waxon.subVersion = 1;
 waxon.dependencies = {
   gash : {apiVersion : 2, subVersion : 1},
+  data : {apiVersion : 1, subVersion : 1},
   utils : {apiVersion : 1, subVersion : 1},
   areas : {apiVersion : 1, subVersion : 1},
 };
+
+/**
+ * Things that probably are overridden in each install.
+ */
+waxon.dataTable = 'waxon'; // Class name to use on parse.com.
 
 /**
  * Response codes for evaluating answers.
@@ -194,7 +200,7 @@ function waxonAnswerSubmit(eventInfo) {
 
 waxon.loadUserData = function(user) {
   user = user || this.getUser();
-  var data = gash.data.loadData('waxon', user);
+  var data = gash.data.loadData(this.dataTable, user);
   if (data == null || data == {}) {
     data = {
       activeQuestion : {},
@@ -207,7 +213,7 @@ waxon.loadUserData = function(user) {
 waxon.storeUserData = function(userData, user) {
   user = user || this.getUser();
   userData.needsSaving = false;
-  gash.data.storeData('waxon', user, userData);
+  gash.data.storeData(this.dataTable, user, userData);
 }
 
 waxon.resetActiveQuestion = function(userData) {
