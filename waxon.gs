@@ -233,6 +233,73 @@ waxon.cleanUpResponse = function(response) {
   return cleanResponse;
 }
 
+waxon.verifyDependencies = function() {
+  var errors = {};
+  var reqApi, reqSub, gotApi, gotSub;
+  for (var i in this.questions) {
+    for (var j in this.questions[i].dependencies) {
+      reqApi = this.questions[i].dependencies[j].apiVersion;
+      reqSub = this.questions[i].dependencies[j].subVersion;
+      if (gash[j] instanceof gashPlugin) {
+        gotApi = gash[j].apiVersion;
+        gotSub = gash[j].subVersion;
+      }
+      else {
+        gotApi = false;
+        gotSub = false;
+        errors[i + ' dependency'] = 'Requires version ' + reqApi + '.' + reqSub + ' of ' + j + ' (plugin missing)';
+      }
+      if (reqApi != gotApi || reqSub > gotSub && gotApi) {
+        errors[i + ' dependency'] = 'Requires version ' + reqApi + '.' + reqSub + ' of ' + j + ' (got ' + gotApi + '.' + gotSub + ')';
+      }
+    }
+  }
+  if (Object.keys(errors).length == 0) {
+    Logger.log('All dependencies met.');
+  }
+  else {
+    Logger.log('Some dependencies not met:');
+    for (var i in errors) {
+      Logger.log(i + ': ' + errors[i]);
+    }
+  }
+}
+
+waxon.runTests = function() {
+  var okMessages = {};
+  var errorMessages = {};
+  for (var i in this.questions) {
+    okMessages[i] = {};
+    errorMessages[i] = {};
+    if (typeof this.questions[i].tests != 'object' || Object.keys(this.questions[i].tests).length == 0) {
+      errorMessages[i] = 'Tests are missing.';
+      Logger.log('Question: ' + i + ': Tests are missing.');
+    }
+    else {
+      for (var t in this.questions[i].tests) {
+        try {
+          this.questions[i].tests[t]();
+          okMessages[i][t] = 'Question: ' + i + ', test: ' + t + ' (ok)';
+          Logger.log('Question: ' + i + ', test: ' + t + ' (ok)');
+        }
+        catch(e) {
+          errorMessages[i][t] = 'ERROR: Question: ' + i + ', test: ' + t + ': ' + e;
+          Logger.log('ERROR: Question: ' + i + ', test: ' + t + ': ' + e);
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function waxonVerifyDependencies() {
+  waxon.verifyDependencies();
+}
+
+function waxonRunTests() {
+  waxon.runTests();
+}
+
 waxon.getFunnyMessage = function() {
   return gash.utils.randomSelect({
     'Utvärderar ditt svar...' : 30,
@@ -278,6 +345,8 @@ function waxonQuestion(id, options) {
   if (typeof options != 'object') {
     options = {};
   }
+  this.dependencies = {};
+  this.tests = {};
   this.defaults = new configObject(options);
 
   return this;
