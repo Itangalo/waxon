@@ -12,35 +12,27 @@
 
 var f = new waxonFrame('book');
 
+/**
+ * Things that probably are overridden on each installation.
+ */
 f.title = 'En bok med mattefrågor';
 f.trackLength = 10;
 f.trackRequired = 7;
-
+f.repeatRatio = 0;
 f.includedQuestions = {
-  multiplyingBinomials1 : {
-    questionId : 'multiplyingBinomials1',
-    group : 'Andragradsuttryck',
-  },
-  multiplyingBinomials2 : {
-    questionId : 'multiplyingBinomials2',
-    group : 'Andragradsuttryck',
-  },
-  squaresAndConjugates1 : {
-    questionId : 'squaresAndConjugates1',
-    group : 'Andragradsuttryck',
-  },
-  squaresAndConjugates2 : {
-    questionId : 'squaresAndConjugates2',
-    group : 'Andragradsuttryck',
-  },
-  multiplyingBinomials3 : {
-    questionId : 'multiplyingBinomials3',
-    group : 'Andragradsuttryck',
-    isImportant : true,
+  exampleQuestion : {
+    questionId : 'exampleQuestion',
+    group : 'Question group',
   },
 }
-
-f.repeatRatio = 0;
+f.classes = {
+  'teacher@example.com' : {
+    'student1@example.com' : 'Student one',
+    'student2@example.com' : 'Student two',
+    'student3@example.com' : 'Student three',
+    'student4@example.com' : 'Student four',
+  }
+};
 
 // Tweaking the settings of waxon areas.
 gash.areas.question.defaults.label = 'Fråga';
