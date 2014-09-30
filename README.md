@@ -1,6 +1,8 @@
 waxon
 =====
 
+THIS FILES NEEDS UPDATING TO REFLECT WAXON 2.
+
 waxon is a Google Apps-based platform for practicing wax-on-wax-off exercises --
 that is, questions that could be really boring but you often need to do a lot of
 them before you can solve them without effort. (Another term would be 'volume
