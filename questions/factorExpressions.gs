@@ -199,14 +199,9 @@ q.evaluateAnswer = function(parameters, input) {
 
 q.helpElements = function(parameters) {
   return {
-    label1 : 'Parentesmultiplikation  ',
-    link1 : ' http://youtu.be/ygC0RkAEQNk  ',
-    label2 : 'Kvadreringsreglerna  ',
-    link2 : 'http://youtu.be/22DXw-2K9Ug  ',
-    label3 : 'Konjugatregeln  ',
-    link3 : 'http://youtu.be/2nWTYbyYFeI  ',
+    label1 : 'Faktorisering och nollproduktmetoden  ',
+    link1 : ' https://www.youtube.com/watch?v=AJ8rJ8PgRbM  ',
   };
-  return {};
 }
 
 q.tests = {
