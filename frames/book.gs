@@ -39,23 +39,25 @@ gash.areas.question.defaults.label = 'Fråga';
 gash.areas.question.defaults.areaAttributes = {
   position : 'fixed', top : '100px', left : '70px',
   width : '360px', height : '240px', float : 'left',
-  fontSize : '24px'
+  fontSize : '24px', overflow : 'auto'
 };
 gash.areas.answer.defaults.label = 'Svara här';
 gash.areas.answer.defaults.areaAttributes = {
   position : 'fixed', top : '100px', left : '500px',
   width : '370px', height : '240px', float : 'left',
-  fontSize : '24px'
+  fontSize : '24px', overflow : 'auto'
 };
 gash.areas.learn.defaults.label = 'Läs på och lär mer';
 gash.areas.learn.defaults.areaAttributes = {
   position : 'fixed', top : '400px', left : '70px',
-  width : '370px', height : '140px', float : 'left'
+  width : '370px', height : '140px', float : 'left',
+  overflow : 'auto'
 };
 gash.areas.result.defaults.label = 'Dina resultat (även synliga för läraren)';
 gash.areas.result.defaults.areaAttributes = {
   position : 'fixed', top : '400px', left : '500px',
-  width : '370px', height : '140px', float : 'left'
+  width : '370px', height : '140px', float : 'left',
+  overflow : 'auto'
 };
 // Adding a new area, used for navigating between questions.
 var browseArea = new gashArea('browse', {
