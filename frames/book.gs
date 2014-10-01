@@ -89,7 +89,7 @@ f.resolveQuestion = function(userData) {
   }
 
   // If the active question isn't the one in focus, change the active question.
-  if (!userData.activeQuestion || userData.activeQuestion.id != focus) {
+  if (!userData.activeQuestion || userData.activeQuestion.id != focus) {
     // The question parameters should be stashed away, so we can use them again later if need be.
     if (userData.questions[focus].id != focus) {
       userData.questions[focus].id = focus;
@@ -343,6 +343,9 @@ function bookResultSummary(eventInfo) {
       }
       else {
         grid.setText(rowCount, columnCount, result[i].result[j].correct);
+        if (result[i].result[j].hasBeenFulfilled) {
+          grid.setStyleAttribute(rowCount, columnCount, 'background', 'lightgreen');
+        }
       }
     }
   }
