@@ -39,6 +39,7 @@ waxon.SKIPPED = -10;
 
 waxon.questionIds = {};
 waxon.questions = {};
+waxon.userAliases = {};
 waxon.frame;
 
 /**
@@ -199,7 +200,7 @@ function waxonAnswerSubmit(eventInfo) {
 }
 
 waxon.loadUserData = function(user) {
-  user = user || this.getUser();
+  user = this.getUser(user);
   var data = gash.data.loadData(this.dataTable, user);
   if (data == null || data == {}) {
     data = {
@@ -211,7 +212,7 @@ waxon.loadUserData = function(user) {
 }
 
 waxon.storeUserData = function(userData, user) {
-  user = user || this.getUser();
+  user = this.getUser(user);
   userData.needsSaving = false;
   gash.data.storeData(this.dataTable, user, userData);
 }
@@ -223,8 +224,12 @@ waxon.resetActiveQuestion = function(userData) {
   }
 }
 
-waxon.getUser = function() {
-  return Session.getActiveUser().getEmail();
+waxon.getUser = function(user) {
+  user = user || Session.getActiveUser().getEmail();
+  if (this.userAliases[user] != undefined) {
+    return this.userAliases[user];
+  }
+  return user;
 }
 
 waxon.cleanUpResponse = function(response) {
@@ -566,6 +571,12 @@ waxon.tests = {
     var q3 = q2.tweak('q3');
     if (!(q3 instanceof waxonQuestion)) {
       throw 'Tweaking of questions do not preseve instanceof.';
+    }
+  },
+  userAliases : function() {
+    this.idAliases = {'alpha' : 'beta'};
+    if (this.getUser('alpha') != 'beta') {
+      throw 'Aliases for user IDs is not working.';
     }
   },
 };
