@@ -25,7 +25,7 @@ f.includedQuestions = {
     group : 'Question group',
   },
 }
-f.classes = {
+f.studentGroups = {
   'teacher@example.com' : {
     'student1@example.com' : 'Student one',
     'student2@example.com' : 'Student two',
@@ -296,9 +296,56 @@ f.populateBrowser = function(selectedGroup) {
     }
     gash.areas.browse.add(app.createAnchor(label, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'), styles);
   }
+
+  if (this.studentGroups[waxon.getUser()] != undefined) {
+    var app = UiApp.getActiveApplication();
+    var resultSummaryHandler = app.createServerHandler('bookResultSummary');
+    gash.areas.browse.add(app.createButton('Se klassresultat', resultSummaryHandler));
+  }
 }
 
 function bookGroupSelectHandler(eventInfo) {
   waxon.frame.populateBrowser(eventInfo.parameter.groupSelect);
   return UiApp.getActiveApplication();
+}
+
+function bookResultSummary(eventInfo) {
+  var app = UiApp.getActiveApplication();
+  gash.areas.question.clear();
+  var students = waxon.frame.studentGroups[waxon.getUser()];
+  var group = waxon.frame.includedQuestions[waxon.loadUserData().activeQuestion.id].group;
+
+  var questions = gash.utils.groupByProperty(waxon.frame.includedQuestions, 'group')[group];
+  var grid = app.createGrid(Object.keys(students).length + 1, Object.keys(questions).length + 1);
+  var rowCount = 0, columnCount = 0, result = {};
+  // Set headers for the table
+  for (var j in questions) {
+    columnCount++;
+    grid.setWidget(0, columnCount, app.createLabel(columnCount).setTitle(waxon.questions[j].title));
+    if (questions[j].isImportant) {
+      grid.setColumnStyleAttribute(columnCount, 'background', '#ffff88');
+    }
+  }
+
+  for (var i in students) {
+    rowCount++;
+    grid.setText(rowCount, 0, students[i].name);
+    result[i] = waxon.loadUserData(i);
+    if (result[i].result == undefined) {
+      grid.setStyleAttribute(rowCount, 0, 'background', 'lightgray');
+      continue;
+    }
+    columnCount = 0;
+    for (var j in questions) {
+      columnCount++;
+      if (result[i].result[j] == undefined) {
+        grid.setText(rowCount, columnCount, '-');
+      }
+      else {
+        grid.setText(rowCount, columnCount, result[i].result[j].correct);
+      }
+    }
+  }
+  gash.areas.question.add(grid);
+  return app;
 }
