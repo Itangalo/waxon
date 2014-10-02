@@ -12,7 +12,7 @@ q.dependencies = {
 };
 
 q.defaults = new configObject({
-  'type' : gash.utils.randomSelect({a : 1, d : 1, ad2: 1, e : 1}),
+  'type' : gash.utils.randomSelect({a : 1, d : 1, ad2 : 1, e : 1, all : 1}),
   a : gash.utils.randomInt(-6, 6, [0]) / 2,
   d : gash.utils.randomInt(-8, 8) / 2,
   e : gash.utils.randomInt(-8, 8) / 2
@@ -51,6 +51,15 @@ q.questionElements = function(parameters) {
       formula = formula.replace('ww', '{\\color{Blue} ww}');
       formula = formula.replace(/aadd\^2\+ee/g, '{\\color{Blue} ad^2+e}');
       break;
+    case 'all' :
+      label = 'Kvadratkomplettera uttrycket nedan.';
+      formula = formula.replace('vv', '{\\color{Pink} vv}');
+      formula = formula.replace(/2aadd/g, '{\\color{Pink} 2ad}');
+      formula = formula.replace('ww', '{\\color{Red} ww}');
+      formula = formula.replace(/aadd\^2\+ee/g, '{\\color{Red} ad^2+e}');
+      formula = formula.replace('uu', '{\\color{Blue} uu}');
+      formula = formula.replace(/aa/g, '{\\color{Blue} a}');
+      break;
   }
   formula = formula.replace('uu', gash.math.latexFraction(parameters.a, {skipOnes : true}));
   formula = formula.replace('vv', gash.math.latexFraction(parameters.b, {skipOnes : true}));
@@ -73,6 +82,7 @@ q.questionToString = function(parameters) {
     d : expression + ' ska kvadratkompletteras. a = ' + gash.math.findFraction(parameters.a).plainText + '. Vad blir d?',
     ad2 : expression + ' ska kvadratkompletteras. a = ' + gash.math.findFraction(parameters.a).plainText + ' och d = ' + gash.math.findFraction(parameters.d).plainText + '. Vad blir ad^2?',
     e : expression + ' ska kvadratkompletteras. a = ' + gash.math.findFraction(parameters.a).plainText + ' och d = ' + gash.math.findFraction(parameters.d).plainText + '. Vad blir e?',
+    all : 'Kvadratkomplettera ' + expression
   };
   return labels[parameters.type];
 }
@@ -107,9 +117,27 @@ q.answerElements = function(parameters) {
         answer : answerBox
       };
       break;
+    case 'all' :
+      elements = {
+        a : answerBox,
+        expression1 : gash.math.latex2image('(x+').setStyleAttribute('verticalAlign', 'middle'),
+        d : app.createTextBox().setFocus(true).setWidth(50).setHeight(50).setStyleAttribute('verticalAlign', 'middle'),
+        expression2 : gash.math.latex2image(')^2 + ').setStyleAttribute('verticalAlign', 'middle'),
+        e : app.createTextBox().setFocus(true).setWidth(50).setHeight(50).setStyleAttribute('verticalAlign', 'middle'),
+      };
+      break;
   }
   return elements;
 };
+
+q.answerToString = function(parameters, input) {
+  if (parameters.type == 'all') {
+    return input.a + '(x + ' + input.d + ')² + ' + input.e;
+  }
+  else {
+    return input.answer;
+  }
+}
 
 q.evaluateAnswer = function(parameters, input) {
   var correctAnswer;
@@ -126,68 +154,45 @@ q.evaluateAnswer = function(parameters, input) {
     case 'e' :
       correctAnswer = parameters.e;
       break;
+    case 'all' :
+      if (gash.algebra.compareExpressions(parameters.a, input.a) == waxon.CORRECT) {
+        if (gash.algebra.compareExpressions(parameters.d, input.d) == waxon.CORRECT) {
+          if (gash.algebra.compareExpressions(parameters.e, input.e) == waxon.CORRECT) {
+            return waxon.CORRECT;
+          }
+          else {
+            return {
+              code : waxon.INCORRECT,
+              message : 'a och d stämmer, men e stämmer inte. Glöm inte att räkna upphöjt till innan multiplikation!'
+            }
+          }
+        }
+        else {
+          return {
+            code : waxon.INCORRECT,
+            message : 'a stämmer, men inte d. Testa att multiplicera ihop för att kontrollera ditt resultat.'
+          }
+        }
+      }
+      return {
+        code : waxon.INCORRECT,
+        message : 'Värdet på a stämmer inte. Det kan vara värt att titta på tidigare uppgifter och träna mer.'
+      }
+      break;
   }
   return gash.algebra.compareExpressions(correctAnswer, input.answer);
 };
 
 q.helpElements = function(parameters) {
-  var helps = {
-    symmetry : 'Lodräta linjer skrivs på formen "x=2,5".',
-    extremePoint : 'Tänk på skillnaden mellan extrempunkt och extremvärden.',
-    extremeValue : 'Tänk på skillnaden mellan extrempunkt och extremvärden.',
-    extremeType : '',
-    zeroes : 'Det är inte säkert att nollställena syns i grafen.'
-  };
   return {
-//    help1 : helps[parameters.type],
-//    separator : '<hr/>  ',
-    help2 : 'Introduktion till andragradsfunktioner del 1:  ',
-    link1 : 'https://www.youtube.com/watch?v=5QVcoxtb7IQ  ',
-    help3 : 'Introduktion till andragradsfunktioner del 2:  ',
-    link2 : 'https://www.youtube.com/watch?v=v_D_immkE6Y  '
+    help1 : 'Kvadratkomplettering genom ansättning:  ',
+    link1 : 'https://www.youtube.com/watch?v=8YtxCaQmhK0  ',
+    help2 : 'Snabbversion av kvadratkomplettering genom ansättning:  ',
+    link2 : 'https://www.youtube.com/watch?v=O6byRNZfB-0  ',
+    help3 : 'Förklaring av kvadratkomplettering genom ansättning (och en del mer):  ',
+    link3 : 'http://tinyurl.com/andragrad-mullsjo-2014'
   };
 }
-
-q.tests = {
-  correctBuild : function() {
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'conjugate',
-      variable : 'x',
-      a : 1,
-      b : 4
-    });
-    if (parameters.expression != 'x^2+-16' && parameters.expression != '-16+x^2') {
-      throw 'Parameters are not built correctly.';
-    }
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'binomial',
-      variable : 'x',
-      a : -1,
-      b : 8,
-      c : 8,
-      d : 6
-    });
-    if (parameters.expression.indexOf('29x') == -1) {
-      throw 'Avoiding common denominators in binomials does not work properly.';
-    }
-  },
-  correctEvaluation : function() {
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'conjugate',
-      variable : 'x',
-      a : 1,
-      b : 4
-    });
-    var input = {factor1 : '(x+4)', factor2 : '(x-4)'};
-    if (waxon.questions.factorExpressionsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
-      throw 'Correct answer is not evaluated as correct (conjugate).';
-    }
-    var input = {factor1 : '(-x+4)', factor2 : '(-x-4)'};
-    if (waxon.questions.factorExpressionsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
-      throw 'Evaluataion does not accept negative flips.';
-    }
-  }
-};
 
 q.tests = {
 };
