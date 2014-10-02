@@ -125,7 +125,7 @@ q.answerElements = function(parameters) {
   latexHandler.addCallbackElement(factor1).addCallbackElement(factor2);
   return {
     factor1 : factor1,
-    between : '·',
+    between : '•',
     factor2 : factor2,
     inputLatex : app.createHorizontalPanel().setId('inputLatex'),
     cannot : app.createCheckBox('Uttrycket kan inte faktoriseras med gemensam faktor, kvadrat eller konjugat.'),
