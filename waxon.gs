@@ -13,7 +13,7 @@
 var waxon = new gashPlugin('waxon');
 
 waxon.apiVersion = 2;
-waxon.subVersion = 1;
+waxon.subVersion = 2;
 waxon.dependencies = {
   gash : {apiVersion : 2, subVersion : 1},
   data : {apiVersion : 1, subVersion : 1},
@@ -100,7 +100,7 @@ waxon.doGet = function(queryInfo, userData) {
   var question = this.questions[questionId];
   parameters = userData.activeQuestion.parameters;
 
-  var elements = question.questionElements(parameters)
+  var elements = question.questionElements(parameters);
   for (var i in elements) {
     if (typeof elements[i].setId == 'function') {
       elements[i].setId(i);
@@ -140,9 +140,12 @@ waxon.doGet = function(queryInfo, userData) {
     gash.areas.answer.add(answerSkip, {float : 'right'});
     hideHandler.forTargets(answerSkip).setEnabled(false);
   }
+  var adviseMessage = app.createLabel(this.getAdviseMessage());
+  gash.areas.answer.add(adviseMessage);
   gash.areas.answer.add(processMessage);
   hideHandler.forTargets(processMessage).setVisible(true);
   hideHandler.forTargets(app.getElementById('result-area')).setVisible(false);
+  hideHandler.forTargets(adviseMessage).setVisible(false);
 
   // Check if we should populate learning and result area.
   if (!this.frame.hideHelp) {
@@ -309,6 +312,21 @@ function waxonVerifyDependencies() {
 
 function waxonRunTests() {
   waxon.runTests();
+}
+
+waxon.getAdviseMessage = function() {
+  return gash.utils.randomSelect({
+    '' : 5,
+    'Tips: Kontrollräkna innan du svarar.' : 1,
+    'Fundera över: Hur kan du kontrollera om ditt svar stämmer?' : 1,
+    'Be bänkgrannen att kolla om ditt svar stämmer innan du skickar.' : 2,
+    'Jobba tillsammans med bänkgrannen på den här uppgiften.' : 2,
+    'Att lösa uppgifter tillsammans med en kompis gör att man lär sig bättre.' : 2,
+    'Tänk på att använda kladdpapper istället för att hålla många steg i huvudet.' : 2,
+    'Att fortsätta även när det inte går bra är en av nycklarna till att lära sig.' : 1,
+    'Det är i allmänhet bättre att använda bråkform (eller så) istället för att avrunda.' : 1,
+    'Träna gärna på huvudräkning istället för att använda räknare.' : 1,
+  });
 }
 
 waxon.getFunnyMessage = function() {
