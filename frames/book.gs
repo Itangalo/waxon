@@ -265,7 +265,8 @@ f.populateBrowser = function(selectedGroup) {
   gash.areas.browse.clear();
   // This function can be called from a handler, but also on page callback where we have no provided
   // selected group. These checks verifies that we have a valid selectedGroup.
-  var focus = this.getFocus(waxon.loadUserData());
+  var userData = waxon.loadUserData();
+  var focus = this.getFocus(userData);
   var questionList = gash.utils.groupByProperty(this.includedQuestions, 'group');
   if (questionList[selectedGroup] == undefined) {
     selectedGroup = this.includedQuestions[focus].group;
@@ -290,6 +291,12 @@ f.populateBrowser = function(selectedGroup) {
     }
     if (this.includedQuestions[i].isImportant) {
       label = waxon.questions[i].shortTitle + '*';
+    }
+    if (userData.result[i] && userData.result[i].isFulfilledNow) {
+      styles.color = 'green';
+    }
+    else if (userData.result[i] && userData.result[i].hasBeenFulfilled) {
+      styles.color = 'lightgreen';
     }
     else {
       label = waxon.questions[i].shortTitle;
