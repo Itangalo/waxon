@@ -292,14 +292,14 @@ f.populateBrowser = function(selectedGroup) {
     if (this.includedQuestions[i].isImportant) {
       label = waxon.questions[i].shortTitle + '*';
     }
+    else {
+      label = waxon.questions[i].shortTitle;
+    }
     if (userData.result[i] && userData.result[i].isFulfilledNow) {
       styles.color = 'green';
     }
     else if (userData.result[i] && userData.result[i].hasBeenFulfilled) {
       styles.color = 'lightgreen';
-    }
-    else {
-      label = waxon.questions[i].shortTitle;
     }
     gash.areas.browse.add(app.createAnchor(label, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'), styles);
   }
