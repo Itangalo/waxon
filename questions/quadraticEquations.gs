@@ -125,6 +125,7 @@ q.generateParameters = function(options) {
   plainText = plainText.replace(/\+0x/g, '');
   plainText = plainText.replace(/\+0/g, '');
   plainText = plainText.replace(/\+\-/g, '-');
+  latex = latex.replace(/\+0/g, '');
   latex = latex.replace(/\+\-/g, '-');
   latex = latex.replace(/\+\\frac\{\-/g, '-\\frac{');
   return {
