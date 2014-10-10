@@ -29,6 +29,7 @@ t.questions = [
       t : 'Variabel för Toms ålder:',
     },
     questionLabel : 'Samband:',
+    correctExpression : 's+5=t',
     isEquation : true,
     freeVar : 's',
     substitutions : {
