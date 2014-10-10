@@ -13,7 +13,7 @@
 var waxon = new gashPlugin('waxon');
 
 waxon.apiVersion = 2;
-waxon.subVersion = 2;
+waxon.subVersion = 3;
 waxon.dependencies = {
   gash : {apiVersion : 2, subVersion : 1},
   data : {apiVersion : 1, subVersion : 1},
@@ -210,6 +210,9 @@ waxon.loadUserData = function(user) {
       activeQuestion : {},
       needsSaving : true
     };
+  }
+  if (typeof this.frame.assureUserDataStructure == 'function') {
+    this.frame.assureUserDataStructure(data);
   }
   return data;
 }
@@ -560,6 +563,17 @@ waxonFrame.prototype.processResponse = function(responseCode, responseMessage, q
  * return {}
  */
 waxonFrame.prototype.displayResult = function(userData) {
+}
+
+/**
+ * Called when user data is loaded. Used to assure that the user data has all relevant properties.
+ *
+ * @param {object} [userData= The full user data object. It contains the property 'gashId'
+ *   with a unique user id, the 'activeQuestion' property and the property 'needsSaving' telling
+ *   waxon if the object needs to be saved.]
+ * return {}
+ */
+waxonFrame.prototype.assureUserDataStructure = function(userData) {
 }
 
 waxon.tests = {

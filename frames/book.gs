@@ -74,7 +74,6 @@ f.resolveQuestion = function(userData) {
   // Get focus from query parameters, or default to first question in the frame's list.
   var focus = this.getFocus(userData);
 
-  this.assureUserDataStructure(userData, focus);
   // Special rules apply if we have a forced repeat.
   // @TODO: Make the forced repeat select a question in a better way.
   if (userData.activeQuestion.forcedRepeat) {
@@ -236,12 +235,14 @@ f.assureUserDataStructure = function(userData, focus) {
     userData.questions = {};
     userData.needsSaving = true;
   }
-  if (userData.questions[focus] == undefined) {
-    userData.questions[focus] = {};
-    userData.needsSaving = true;
-  }
   if (userData.result == undefined) {
     userData.result = {};
+    userData.needsSaving = true;
+  }
+
+  focus = focus || this.getFocus(userData);
+  if (userData.questions[focus] == undefined) {
+    userData.questions[focus] = {};
     userData.needsSaving = true;
   }
   if (userData.result[focus] == undefined) {
