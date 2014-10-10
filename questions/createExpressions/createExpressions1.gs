@@ -100,6 +100,14 @@ t.questions = [
   {
     description : 'I en rektangel är längden dubbelt så stor som höjden. Skriv ett uttryck för rektangelns area.',
     variables : {
+      l : 'Variabel för rektangelns längd:',
+    },
+    questionLabel : 'Uttryck:',
+    correctExpression : 'l*0.5l',
+  },
+  {
+    description : 'I en rektangel är längden dubbelt så stor som höjden. Skriv ett uttryck för rektangelns area.',
+    variables : {
       h : 'Variabel för rektangelns höjd:',
     },
     questionLabel : 'Uttryck:',
