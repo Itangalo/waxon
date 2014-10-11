@@ -89,7 +89,7 @@ t.questions = [
   {
     description : 'Varje blad i en bok är 0,1 mm tjock, och pärmarna på boken är tillsammans 3 mm tjocka. Skriv ett uttryck för hur tjock hela boken är.',
     variables : {
-      s : 'Variabel för antal sidor i boken:',
+      s : 'Variabel för antal blad i boken:',
     },
     questionLabel : 'Uttryck:',
     correctExpression : '0,1s+3',
