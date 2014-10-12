@@ -180,47 +180,6 @@ q.helpElements = function(parameters) {
 }
 
 q.tests = {
-  correctBuild : function() {
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'conjugate',
-      variable : 'x',
-      a : 1,
-      b : 4
-    });
-    if (parameters.expression != 'x^2+-16' && parameters.expression != '-16+x^2') {
-      throw 'Parameters are not built correctly.';
-    }
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'binomial',
-      variable : 'x',
-      a : -1,
-      b : 8,
-      c : 8,
-      d : 6
-    });
-    if (parameters.expression.indexOf('29x') == -1) {
-      throw 'Avoiding common denominators in binomials does not work properly.';
-    }
-  },
-  correctEvaluation : function() {
-    var parameters = waxon.questions.factorExpressionsBase.generateParameters({
-      type : 'conjugate',
-      variable : 'x',
-      a : 1,
-      b : 4
-    });
-    var input = {factor1 : '(x+4)', factor2 : '(x-4)'};
-    if (waxon.questions.factorExpressionsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
-      throw 'Correct answer is not evaluated as correct (conjugate).';
-    }
-    var input = {factor1 : '(-x+4)', factor2 : '(-x-4)'};
-    if (waxon.questions.factorExpressionsBase.evaluateAnswer(parameters, input) != waxon.CORRECT) {
-      throw 'Evaluataion does not accept negative flips.';
-    }
-  }
-};
-
-q.tests = {
   generateParameters : function() {
     var parameters = waxon.questions.propertiesOfParabolaBase.generateParameters({type : 'symmetry'});
     if (parameters.type != 'symmetry') {
