@@ -161,6 +161,13 @@ q.evaluateAnswer = function (parameters, input) {
   }
 }
 
+q.helpElements = function(parameters) {
+  return {
+    label1 : 'Introduktion till exponentialfunktioner:  ',
+    link1 : 'http://www.youtube.com/watch?v=SrLV88Iwbcg  '
+  };
+}
+
 q.questions = [];
 
 q.questions.push({
