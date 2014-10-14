@@ -81,7 +81,7 @@ t.questions.push({
     x : 'hidden',
   },
   questionLabel : 'f(x)=',
-  correctExpression : '24000*0.096^x',
+  correctExpression : '24000*0.96^x',
 });
 
 t.questions.push({
@@ -90,7 +90,7 @@ t.questions.push({
     x : 'Variabel för antalet år som gått sedan 2014',
   },
   questionLabel : 'Ekvation',
-  correctExpression :  '24000*0.096^x=2000',
+  correctExpression :  '24000*0.96^x=2000',
   isEquation : true,
   freeVar : 'x',
   substitutions : {
@@ -147,7 +147,7 @@ t.questions.push({
     x : 'Variabel för antal kr från början',
   },
   questionLabel : 'Ekvation',
-  correctExpression :  'x*1,03^18=15000',
+  correctExpression :  'x*1.03^18=15000',
   isEquation : true,
   freeVar : 'x',
   substitutions : {
