@@ -606,8 +606,8 @@ waxon.tests = {
     }
   },
   userAliases : function() {
-    this.idAliases = {'alpha' : 'beta'};
-    if (this.getUser('alpha') != 'beta') {
+    waxon.userAliases = {'alpha' : 'beta'};
+    if (waxon.getUser('alpha') != 'beta') {
       throw 'Aliases for user IDs is not working.';
     }
   },
