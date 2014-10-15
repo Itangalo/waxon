@@ -26,8 +26,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression : '3000*1.07^x=10000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(10000/3000)/log(1.07)'
   },
 });
 
@@ -48,8 +48,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression : '300000*1.05^x=400000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(4/3)/log(1.05)'
   },
 });
 
@@ -70,8 +70,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  '15*0.91^x=2',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(2/15)/log(0.91)'
   },
 });
 
@@ -92,8 +92,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  '24000*0.96^x=2000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(2/24)/log(0.96)'
   },
 });
 
@@ -114,8 +114,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  '3000*2^x=1000000000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(1000000/3)/log(2)'
   },
 });
 
@@ -136,8 +136,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  '750*1.0057^x=1000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : 'log(1000/750)/log(1.0057)'
   },
 });
 
@@ -149,8 +149,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  'x*1.03^18=15000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : '15000/(1.03^18)'
   },
 });
 
@@ -162,8 +162,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  'x^20=2',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : '2^(1/20)'
   },
 });
 
@@ -175,8 +175,8 @@ t.questions.push({
   questionLabel : 'Ekvation',
   correctExpression :  '4000*x^4=5000',
   isEquation : true,
-  freeVar : 'x',
   substitutions : {
+    x : '(5000/4000)^(1/4)'
   },
 });
 
