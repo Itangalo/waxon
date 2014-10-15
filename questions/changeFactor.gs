@@ -135,6 +135,15 @@ q.evaluateAnswer = function (parameters, input) {
   }
 }
 
+q.helpElements = function(parameters) {
+  return {
+    label1 : 'Kort introduktion av räkning med förändringsfaktor:  ',
+    link1 : 'https://www.youtube.com/watch?v=3l6MSUmug6o  ',
+    label2 : 'Längre introduktion av förändringsfaktor:  ',
+    link2 : 'https://www.youtube.com/watch?v=3HhflviRceM  '
+  };
+}
+
 q.tests = {
   basics : function() {
     var options = {
