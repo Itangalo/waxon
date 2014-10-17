@@ -173,17 +173,17 @@ t.questions.push({
     x : 'Variabel för förändringsfaktorn',
   },
   questionLabel : 'Ekvation',
-  correctExpression :  '4000*x^4=5000',
+  correctExpression :  '4000*x^3=4500',
   isEquation : true,
   substitutions : {
-    x : '(5000/4000)^(1/4)'
+    x : '(4500/4000)^(1/3)'
   },
 });
 
 t.questions.push({
   description : 'Rasputin har lånat två miljoner för att köpa en bostad. Årsräntan är 3 procent. Skriv en funktion som visar hur mycket han är skyldig varje år, om han inte gör några amorteringar (avbetalningar).',
   variables : {
-    x : 'Variabel antalet år som gått',
+    x : 'Variabel för antalet år som gått',
   },
   questionLabel : 'funktionsuttryck',
   correctExpression :  '2000000*1.03^x',
