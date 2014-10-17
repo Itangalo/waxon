@@ -136,7 +136,7 @@ waxon.doGet = function(queryInfo, userData) {
     hideHandler.forTargets(answerSubmit).setEnabled(false);
   }
   if (!question.hideSkipButton) {
-    var answerSkip = app.createButton('Hoppa över fråga', answerHandler).setId('answerSkip').addClickHandler(hideHandler);
+    var answerSkip = app.createButton('Hoppa över', answerHandler).setId('answerSkip').addClickHandler(hideHandler).setStyleAttribute('fontSize', '11px');
     gash.areas.answer.add(answerSkip, {float : 'right'});
     hideHandler.forTargets(answerSkip).setEnabled(false);
   }
