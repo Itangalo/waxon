@@ -96,7 +96,7 @@ q.questionToString = function(parameters) {
       return 'Beräkna lg(10^(' + parameters.decimalExponent + parameters.variable + '))';
       break;
     case 'expEquation' :
-      return 'Lös ekvationen 10^{' + parameters.variable + '} = ' + parameters.number;
+      return 'Lös ekvationen 10^' + parameters.variable + ' = ' + parameters.number;
       break;
   }
 };
