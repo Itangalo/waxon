@@ -39,13 +39,12 @@ q.questionElements = function(parameters) {
     case 'logEquation' :
       return {
         label : 'Hitta värdet på variabeln:  ',
-        equation : gash.math.latex2image('lg(' + parameters.variable + ') = ' + parameters.integerExponent)
+        equation : 'lg(' + parameters.variable + ') = ' + parameters.integerExponent
       };
       break;
     case 'calculate' :
       return {
-        label : 'Beräkna:  ',
-        equation : gash.math.latex2image('lg(' + parameters.number + ')')
+        label : 'Vad är <em>lg(' + parameters.number + ')</em>?'
       };
       break;
     case 'interval' :
@@ -56,21 +55,19 @@ q.questionElements = function(parameters) {
     case 'power' :
       parameters.decimalExponent = gash.math.round(parameters.decimalExponent, parameters.maxPrecision);
       return {
-        label : 'Vad är:  ',
-        equation : gash.math.latex2image('lg(10^{' + parameters.decimalExponent + '})')
+        label : 'Vad är <em>lg(10<sup>' + parameters.decimalExponent + '</sup>)</em>?'
       };
       break;
     case 'powerWithVariable' :
       parameters.decimalExponent = gash.math.round(parameters.decimalExponent, parameters.maxPrecision);
       return {
-        label : 'Vad är:  ',
-        equation : gash.math.latex2image('lg(10^{' + parameters.decimalExponent + parameters.variable + '})')
+        label : 'Vad är <em>lg(10<sup>' + parameters.decimalExponent + parameters.variable + '</sup>)</em>?'
       };
       break;
     case 'expEquation' :
       return {
         label : 'Hitta värdet på variabeln och svara med en logaritm:  ',
-        equation : gash.math.latex2image('10^{' + parameters.variable + '} = ' + parameters.number)
+        equation : '10<sup>' + parameters.variable + '</sup> = ' + parameters.number
       };
       break;
   }
@@ -106,7 +103,7 @@ q.answerElements = function(parameters) {
   switch (parameters.type) {
     case 'logEquation' :
       return {
-        label : parameters.variable + '=',
+        label : parameters.variable + ' =',
         answer : app.createTextBox().setFocus(true)
       };
       break;
@@ -129,8 +126,9 @@ q.answerElements = function(parameters) {
       break;
     case 'expEquation' :
       return {
-        label : 'Svara med <strong>en logaritm</strong>, exempelvis "lg(42)"',
-        answer : app.createTextBox().setFocus(true)
+        label1 : parameters.variable + ' =',
+        answer : app.createTextBox().setFocus(true),
+        label2 : 'Svara med <strong>en logaritm</strong>, exempelvis "lg(42)".  ',
       };
       break;
   }
