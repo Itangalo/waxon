@@ -1,5 +1,5 @@
 /**
- * @file: Question type for describing change as factor and percent.
+ * @file: Question type for basic logarithm operations.
  */
 var q = new waxonQuestion('logarithmsBase');
 
