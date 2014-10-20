@@ -13,7 +13,7 @@ q.dependencies = {
 };
 
 q.defaults = new configObject({
-  'type' : gash.utils.randomSelect({logEquation : 1, calculate : 1, interval : 1, power : 1, powerWithVariable : 1, expEquation : 100}),
+  'type' : gash.utils.randomSelect({logEquation : 1, calculate : 1, interval : 1, power : 1, powerWithVariable : 1, expEquation : 1}),
   integerExponent : gash.utils.randomInt(-2, 6),
   decimalExponent : Math.random() * 8 - 4,
   maxPrecision : 2,
