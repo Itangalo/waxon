@@ -39,35 +39,43 @@ q.questionElements = function(parameters) {
     case 'logEquation' :
       return {
         label : 'Hitta värdet på variabeln:  ',
-        equation : 'lg(' + parameters.variable + ') = ' + parameters.integerExponent
+        latex : gash.math.latex2image('lg(' + parameters.variable + ') = ' + parameters.integerExponent)
       };
       break;
     case 'calculate' :
       return {
-        label : 'Vad är <em>lg(' + parameters.number + ')</em>?'
+        label : 'Vad är',
+        latex : gash.math.latex2image('lg(' + parameters.number + ')'),
+        label2 : '?'
       };
       break;
     case 'interval' :
       return {
-        label : 'Mellan vilka två heltal ligger <em>lg(' + parameters.number + ')</em>?'
+        label : 'Mellan vilka två heltal ligger',
+        latex : gash.math.latex2image('lg(' + parameters.number + ')'),
+        label2 : '?'
       };
       break;
     case 'power' :
       parameters.decimalExponent = gash.math.round(parameters.decimalExponent, parameters.maxPrecision);
       return {
-        label : 'Vad är <em>lg(10<sup>' + parameters.decimalExponent + '</sup>)</em>?'
+        label : 'Vad är',
+        latex : gash.math.latex2image('lg(10^{' + parameters.decimalExponent + '})'),
+        label2 : '?'
       };
       break;
     case 'powerWithVariable' :
       parameters.decimalExponent = gash.math.round(parameters.decimalExponent, parameters.maxPrecision);
       return {
-        label : 'Vad är <em>lg(10<sup>' + parameters.decimalExponent + parameters.variable + '</sup>)</em>?'
+        label : 'Vad är',
+        latex : gash.math.latex2image('lg(10^{' + parameters.decimalExponent + parameters.variable + '})'),
+        label2 : '?'
       };
       break;
     case 'expEquation' :
       return {
         label : 'Hitta värdet på variabeln och svara med en logaritm:  ',
-        equation : '10<sup>' + parameters.variable + '</sup> = ' + parameters.number
+        latex : gash.math.latex2image('10^{' + parameters.variable + '} = ' + parameters.number)
       };
       break;
   }
@@ -144,15 +152,6 @@ q.answerToString = function(parameters, input) {
 };
 
 q.evaluateAnswer = function (parameters, input) {
-  // Replace 'log' in answers with 'lg'.
-  if (parameters.type === 'interval') {
-    input.answer1 = input.answer1.replace(/log/g, 'lg');
-    input.answer2 = input.answer2.replace(/log/g, 'lg');
-  }
-  else {
-    input.answer = input.answer.replace(/log/g, 'lg');
-  }
-
   var value;
   switch (parameters.type) {
     case 'logEquation' :
