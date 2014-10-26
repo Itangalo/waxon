@@ -1,5 +1,5 @@
 /**
- * @file: Question type for exponential equations on the form c*a^(kx+d) = b.
+ * @file: Question type for practicing arithmetics with negative numbers.
  */
 var q = new waxonQuestion('negativeArithmeticsBase');
 
