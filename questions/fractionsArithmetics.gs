@@ -28,11 +28,12 @@ q.defaults = new configObject({
 q.generateParameters = function(options) {
   options = this.defaults.overwriteWith(options);
   if (options.forceFraction) {
+    // If numbers have denominator 1, increase by a small fraction.
     if (options.a.d == 1) {
-      options.a = gash.math.findFraction(options.a + 1 / options.maxDenominator);
+      options.a = gash.math.findFraction(options.a.value + 1 / options.maxDenominator);
     }
     if (options.b.d == 1) {
-      options.b = gash.math.findFraction(options.b + 1 / options.maxDenominator);
+      options.b = gash.math.findFraction(options.b.value + 1 / options.maxDenominator);
     }
   }
 
@@ -145,6 +146,11 @@ q.tests = {
     };
     if (waxon.questions.fractionsArithmeticsBase.evaluateAnswer(parameters, input) != waxon.INCORRECT) {
       throw 'Incorrecrt answer is not evaluated correctly.';
+    }
+    options.a = gash.math.findFraction(1);
+    parameters = waxon.questions.fractionsArithmeticsBase.generateParameters(options);
+    if (parameters.expression != '(7/6) + (1/3)') {
+      throw 'Parameters are not forced to fractions.';
     }
   }
 };
