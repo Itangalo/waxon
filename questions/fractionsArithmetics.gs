@@ -136,6 +136,12 @@ q.tests = {
       throw 'Non-fraction answer is not evaluated correctly.';
     }
     input = {
+      answer : '-1/(-2)'
+    };
+    if (waxon.questions.fractionsArithmeticsBase.evaluateAnswer(parameters, input).code != waxon.CLOSE) {
+      throw 'Negative denominators are not evaluated correctly.';
+    }
+    input = {
       answer : '3/6'
     };
     if (waxon.questions.fractionsArithmeticsBase.evaluateAnswer(parameters, input).code != waxon.CLOSE) {
