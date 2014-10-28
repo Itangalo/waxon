@@ -54,7 +54,6 @@ q.generateParameters = function(options) {
   var keepOnes = new configObject({maxDenominator : options.maxDenominator});
   var skipOnes = new configObject({maxDenominator : options.maxDenominator, skipOnes : true});
 
-// Here
   switch (options.type) {
     case 'a()+b()' :
       options.expression = a.value + '*(' + bin1.plainText + ')+' + b.value + '*(' + bin2.plainText + ')';
