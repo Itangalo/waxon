@@ -49,7 +49,7 @@ q.generateParameters = function(options) {
       options.left = leftBin.plainText;
       break;
     case 'a()' :
-      options.left = '' + options.a1 + '(' + leftBin + ')';
+      options.left = '' + options.a1 + '(' + leftBin.plainText + ')';
       break;
   }
   switch (options.rightExpressionType) {
@@ -105,6 +105,13 @@ q.questionElements = function(parameters) {
 q.questionToString = function(parameters) {
   return parameters.expression;
 };
+
+q.answerElements = function(parameters) {
+  return {
+    label : parameters.variable + ' = ',
+    answer : UiApp.getActiveApplication().createTextBox().setFocus(true)
+  };
+}
 
 q.evaluateAnswer = function (parameters, input) {
   var value = gash.algebra.evaluate(input.answer, [], {allowedOperators : ['/']});
