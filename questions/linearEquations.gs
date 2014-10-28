@@ -97,7 +97,7 @@ q.generateParameters = function(options) {
 
 q.questionElements = function(parameters) {
   return {
-    label : 'Lös ut ' + parameters.variable + 'ur följande ekvation.  ',
+    label : 'Lös ut ' + parameters.variable + ' ur följande ekvation.  ',
     equation : gash.math.latex2image(parameters.expression),
   };
 };
