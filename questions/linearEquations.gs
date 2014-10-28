@@ -85,7 +85,7 @@ q.generateParameters = function(options) {
     options.right += '+' + options.variable;
   }
 
-  if (options.noSwitch != true && waxonUtils.randomSelect(['straight', 'reverse']) == 'reverse') {
+  if (options.noSwitch != true && gash.utils.randomSelect(['straight', 'reverse']) == 'reverse') {
     var tmp = options.left;
     options.left = options.right;
     options.right = tmp;
