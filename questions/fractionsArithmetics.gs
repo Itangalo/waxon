@@ -48,6 +48,7 @@ q.questionElements = function(parameters) {
   return {
     label1 : 'Beräkna följande uttryck.  ',
     equation : gash.math.latex2image(parameters.latex),
+    linebreak : '<br/>',
     label2 : '<strong>Svara med ett bråk, förkortat så långt som möjligt</strong> (alternativt ett heltal).'
   };
 };
@@ -66,7 +67,7 @@ q.evaluateAnswer = function (parameters, input) {
       message : 'Kunde inte förstå ditt svar. Svara med ett heltal eller ett bråk.',
     };
   }
-  if (answer != correctAnswer) {
+  if (answer.toFixed(gash.math.defaults.precision) != correctAnswer.toFixed(gash.math.defaults.precision)) {
     return waxon.INCORRECT;
   }
 
