@@ -17,10 +17,20 @@ q.defaults = new configObject({
   b : gash.utils.randomInt(-10, 10, [0, 1]),
   reverse : gash.utils.randomSelect(['yes', 'no']),
   c : gash.utils.randomInt(2, 3),
+  forceInteger : true
 });
 
 q.generateParameters = function(options) {
   options = this.defaults.overwriteWith(options);
+  if (options.op == '/' && options.forceInteger) {
+    if (options.reverse == 'yes') {
+      options.b = gash.math.sign(options.b) * Math.ceil(options.b / options.a) * options.a;
+    }
+    else {
+      options.a = gash.math.sign(options.a) * Math.ceil(options.a / options.b) * options.b;
+    }
+  }
+
   var a = options.a, b = options.b, c = options.c;
   if (a < 0) {
     a = '(' + a + ')';
@@ -112,5 +122,10 @@ q.tests = {
     if (parameters.expression != '(-2)^2') {
       throw 'Power expresions are not built properly.';
     }
-  }
+    options.op = '/';
+    parameters = waxon.questions.negativeArithmeticsBase.generateParameters(options);
+    if (parameters.expression != '4/(-2)') {
+      throw 'Divisions are not forced to integer results..';
+    }
+  },
 };
