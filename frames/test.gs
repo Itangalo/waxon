@@ -45,20 +45,20 @@ gash.areas.question.defaults.areaAttributes = {
 };
 gash.areas.answer.defaults.label = 'Svara här';
 gash.areas.answer.defaults.areaAttributes = {
-  position : 'fixed', top : '100px', left : '500px',
+  position : 'relative', top : '100px', marginLeft : '500px',
   width : '370px', height : '240px', float : 'left',
   fontSize : '24px', overflow : 'auto'
 };
-// Hiding the learn and result area.
+// These areas won't get any content.
 gash.areas.learn.defaults.areaAttributes = {
-  position : 'fixed', top : '400px', left : '70px',
-  width : '370px', height : '140px', float : 'left',
+  position : 'fixed', top : '1px', left : '70px',
+  width : '1px', height : '1px', float : 'left',
   overflow : 'auto',
   border : 'none'
 };
 gash.areas.result.defaults.areaAttributes = {
-  position : 'fixed', top : '400px', left : '500px',
-  width : '370px', height : '140px', float : 'left',
+  position : 'fixed', top : '1px', left : '500px',
+  width : '1px', height : '1px', float : 'left',
   overflow : 'auto',
   border : 'none'
 };
@@ -221,12 +221,9 @@ f.populateBrowser = function(selectedGroup) {
   // Add links to the questions in this group.
   for (var i in questionList[selectedGroup]) {
     styles = {};
-    if (i == focus) {
-      styles.fontWeight = 'bold';
-    }
-    label = i;
-    if (userData.result[i] && userData.result[i].isAnswered) {
-      styles.color = 'lightgreen';
+    label = questionList[selectedGroup][i].shortTitle || i;
+    if (!userData.result[i] || !userData.result[i].isAnswered) {
+      label += '*';
     }
     gash.areas.browse.add(app.createAnchor(label, gash.utils.getCurrentUrl({focus : i})).setTarget('_self'), styles);
   }
