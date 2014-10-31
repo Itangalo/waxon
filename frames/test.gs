@@ -39,14 +39,14 @@ f.hideResult = true;
 // Tweaking the settings of waxon areas.
 gash.areas.question.defaults.label = 'Fråga';
 gash.areas.question.defaults.areaAttributes = {
-  position : 'relative', top : '100px', margin-left : '70px',
-  width : '360px', height : '240px', float : 'left',
+  position : 'relative', top : '100px', marginLeft : '70px',
+  width : '340px', height : '220px', float : 'left',
   fontSize : '24px', overflow : 'auto'
 };
 gash.areas.answer.defaults.label = 'Svara här';
 gash.areas.answer.defaults.areaAttributes = {
-  position : 'relative', top : '100px', margin-Left : '70px',
-  width : '370px', height : '240px', float : 'left',
+  position : 'relative', top : '100px', marginLeft : '70px',
+  width : '340px', height : '220px', float : 'left',
   fontSize : '24px', overflow : 'auto'
 };
 // These areas won't get any content.
