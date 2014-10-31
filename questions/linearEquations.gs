@@ -43,13 +43,13 @@ q.generateParameters = function(options) {
       options.left = options.variable;
       break;
     case 'ax' :
-      options.left = '' + options.a1 + options.variable;
+      options.left = '' + gash.math.findFraction(options.a1).noOnes + options.variable;
       break;
     case '()' :
       options.left = leftBin.plainText;
       break;
     case 'a()' :
-      options.left = '' + options.a1 + '(' + leftBin.plainText + ')';
+      options.left = '' + gash.math.findFraction(options.a1).noOnes + '(' + leftBin.plainText + ')';
       break;
   }
   switch (options.rightExpressionType) {
@@ -64,13 +64,13 @@ q.generateParameters = function(options) {
       options.right = options.variable;
       break;
     case 'ax' :
-      options.right = '' + options.a2 + options.variable;
+      options.right = '' + gash.math.findFraction(options.a2).noOnes + options.variable;
       break;
     case '()' :
       options.right = rightBin.plainText;
       break;
     case 'a()' :
-      options.right = '' + options.a2 + '(' + rightBin.plainText + ')';
+      options.right = '' + gash.math.findFraction(options.a2).noOnes + '(' + rightBin.plainText + ')';
       break;
   }
 
@@ -97,8 +97,10 @@ q.generateParameters = function(options) {
 
 q.questionElements = function(parameters) {
   return {
-    label : 'Lös ut ' + parameters.variable + ' ur följande ekvation.  ',
+    line1 : 'Lös ut ' + parameters.variable + ' ur följande ekvation.  ',
     equation : gash.math.latex2image(parameters.expression),
+    lineBreak : '<br/>',
+    line2 : '<strong>Svara exakt</strong>, det vill säga med ett bråk eller ett exakt decimaltal.  ',
   };
 };
 
@@ -195,6 +197,12 @@ q.tests = {
     var parameters = waxon.questions.linearEquationsBase.generateParameters(options);
     if (parameters.expression != 't = t+t') {
       throw 'Linearly dependent left and right sides are not treated correctly (case x=x).';
+    }
+    options.rightExpressionType = 'ax';
+    options.a2 = -1;
+    var parameters = waxon.questions.linearEquationsBase.generateParameters(options);
+    if (parameters.expression != 't = -t') {
+      throw 'Coefficients for variables are not simplified in case of ±1.';
     }
     options.rightBin = gash.math.randomBinomial(-3, 3, {variable : 't', a : 1, b : 3, mode : 'straight'});
     options.rightExpressionType = '()';
