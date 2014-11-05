@@ -95,9 +95,15 @@ f.resolveQuestion = function(userData) {
     userData.needsSaving = true;
   }
 
-  UiApp.getActiveApplication().getElementById('question-wrapper').setCaptionText(focus);
+  UiApp.getActiveApplication().getElementById('question-wrapper').setCaptionText(this.includedQuestions[focus].title || focus);
 
-  if (userData.result[focus].lastAnswer) {
+  if (userData.locked) {
+    if (!this.includedQuestions[focus].skipSummary) {
+      gash.areas.answer.add('Din diagnos är avslutad, och ytterligare svar kommer inte att att sparas. <br/>Ditt sparade svar är <em> ' + userData.result[focus].lastAnswer) + '</em>.  ';
+      gash.areas.answer.add('<hr/>');
+    }
+  }
+  else if (userData.result[focus].lastAnswer) {
     gash.areas.answer.add('Du har redan svarat på den här frågan. Om du vill kan du svara på den igen, för att byta ut det tidigare svaret.<br/>Ditt senaste svar var <em> ' + userData.result[focus].lastAnswer) + '</em>.  ';
     gash.areas.answer.add('<hr/>');
   }
@@ -119,15 +125,16 @@ f.processResponse = function(responseCode, responseMessage, questionString, answ
   userData.needsSaving = true;
   var number = userData.activeQuestion.number;
   var id = userData.activeQuestion.id;
+  if (!userData.locked) {
 
-  userData.result[number].lastQuestion = questionString;
-  userData.result[number].lastAnswer = answerString;
-  userData.result[number].track = responseCode;
-  userData.result[number].isAnswered = true;
+    userData.result[number].lastQuestion = questionString;
+    userData.result[number].lastAnswer = answerString;
+    userData.result[number].track = responseCode;
+    userData.result[number].isAnswered = true;
 
-  userData.result[number].count++;
-  userData.result[number].lastAttempt = new Date().toString();
-
+    userData.result[number].count++;
+    userData.result[number].lastAttempt = new Date().toString();
+  }
 
   this.resetActiveQuestion(userData);
   var keys = Object.keys(this.includedQuestions);
