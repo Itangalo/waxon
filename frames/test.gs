@@ -251,18 +251,17 @@ function testResultSummary(eventInfo) {
   var app = UiApp.getActiveApplication();
   gash.areas.question.clear();
   var students = waxon.frame.studentGroups[waxon.getUser()];
-  var group = waxon.frame.includedQuestions[waxon.loadUserData().activeQuestion.id].group;
 
-  var questions = gash.utils.groupByProperty(waxon.frame.includedQuestions, 'group')[group];
+  var questions = waxon.frame.includedQuestions;
   var grid = app.createGrid(Object.keys(students).length + 1, Object.keys(questions).length + 1);
   var rowCount = 0, columnCount = 0, result = {};
   // Set headers for the table
   for (var j in questions) {
-    columnCount++;
-    grid.setWidget(0, columnCount, app.createLabel(columnCount).setTitle(waxon.questions[j].title));
-    if (questions[j].isImportant) {
-      grid.setColumnStyleAttribute(columnCount, 'background', '#ffff88');
+    if (questions[j].skipSummary) {
+      continue;
     }
+    columnCount++;
+    grid.setWidget(0, columnCount, app.createLabel(columnCount).setTitle(waxon.questions[questions[j].id].title));
   }
 
   for (var i in students) {
@@ -275,14 +274,23 @@ function testResultSummary(eventInfo) {
     }
     columnCount = 0;
     for (var j in questions) {
+      if (questions[j].skipSummary) {
+        continue;
+      }
       columnCount++;
-      if (result[i].result[j] == undefined) {
+      if (result[i].result[j] == undefined || result[i].result[j].track == undefined) {
         grid.setText(rowCount, columnCount, '-');
       }
       else {
-        grid.setText(rowCount, columnCount, result[i].result[j].correct);
-        if (result[i].result[j].hasBeenFulfilled) {
+        grid.setWidget(rowCount, columnCount, app.createLabel(result[i].result[j].track).setTitle('Q: ' + result[i].result[j].lastQuestion + '\r\nA: ' + result[i].result[j].lastAnswer));
+        if (result[i].result[j].track > 0) {
           grid.setStyleAttribute(rowCount, columnCount, 'background', 'lightgreen');
+        }
+        else if (result[i].result[j].track == 0) {
+          grid.setStyleAttribute(rowCount, columnCount, 'background', 'yellow');
+        }
+        else {
+          grid.setStyleAttribute(rowCount, columnCount, 'background', 'red');
         }
       }
     }
